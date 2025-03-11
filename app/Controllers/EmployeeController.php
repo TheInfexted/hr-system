@@ -1,0 +1,531 @@
+<?php namespace App\Controllers;
+
+use App\Models\EmployeeModel;
+use App\Models\CompanyModel;
+use App\Models\CompensationModel;
+use App\Models\AttendanceModel;
+
+class EmployeeController extends BaseController
+{
+    protected $employeeModel;
+    protected $companyModel;
+    protected $compensationModel;
+    protected $attendanceModel;
+    protected $documentPath = 'uploads/documents/';
+    
+    protected function getUniqueFileName($prefix, $firstName, $lastName, $extension)
+    {
+        // Create a sanitized version of the name
+        $sanitizedName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $firstName . '_' . $lastName));
+        
+        // Add timestamp and random number to ensure uniqueness
+        return $prefix . $sanitizedName . '_' . time() . '_' . rand(1000, 9999) . '.' . $extension;
+    }
+    public function __construct()
+    {
+        $this->employeeModel = new EmployeeModel();
+        $this->companyModel = new CompanyModel();
+        $this->compensationModel = new CompensationModel();
+        $this->attendanceModel = new AttendanceModel();
+    }
+    
+    // In EmployeeController.php
+    public function index()
+    {
+        $db = db_connect();
+        $employees = $db->table('employees')
+                        ->select('employees.id, employees.first_name, employees.last_name, employees.email, 
+                                  employees.phone, employees.status, companies.name as company')
+                        ->join('companies', 'companies.id = employees.company_id', 'left')
+                        ->get()
+                        ->getResult();
+        
+        $data = [
+            'title' => 'Employee Management',
+            'employees' => $employees
+        ];
+        
+        return view('employees/index', $data);
+    }
+        
+    public function getEmployees()
+    {
+        // Log the request
+        log_message('debug', 'getEmployees method called');
+        
+        try {
+            // Return a simple test response to see if it works
+            $response = [
+                'draw' => intval($this->request->getGet('draw') ?? 1),
+                'recordsTotal' => 1,
+                'recordsFiltered' => 1,
+                'data' => [
+                    [
+                        'name' => 'Test User',
+                        'email' => 'test@example.com',
+                        'phone' => '123456789',
+                        'status' => 'Active',
+                        'company' => 'Test Company',
+                        'action' => '<button class="btn btn-sm btn-primary">Test</button>'
+                    ]
+                ]
+            ];
+            
+            return $this->response->setJSON($response);
+        } catch (\Exception $e) {
+            log_message('error', 'Error in getEmployees: ' . $e->getMessage());
+            
+            return $this->response->setJSON([
+                'draw' => intval($this->request->getGet('draw') ?? 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+    
+    public function create()
+    {
+        // For admin or company managers, show appropriate companies for selection
+        if (session()->get('role_id') == 1) { // Admin
+            $companies = $this->companyModel->findAll();
+        } elseif (session()->get('role_id') == 2) { // Company manager
+            $companies = $this->companyModel->where('id', session()->get('company_id'))->findAll();
+        } else {
+            // Regular employee shouldn't be here
+            return redirect()->to('/dashboard')->with('error', 'Access denied');
+        }
+        
+        $data = [
+            'title' => 'Add New Employee',
+            'companies' => $companies,
+            'validation' => \Config\Services::validation()
+        ];
+        
+        return view('employees/create', $data);
+    }
+    
+    public function store()
+    {
+        helper(['form']);
+        
+        // Set custom validation rules for ID based on type
+        $rules = [
+            'first_name'    => 'required|min_length[2]',
+            'last_name'     => 'required|min_length[2]',
+            'email'         => 'required|valid_email|is_unique[employees.email]',
+            'hire_date'     => 'required|valid_date',
+            'company_id'    => 'required|numeric',
+            'id_type'       => 'permit_empty|in_list[Passport,NRIC]'
+        ];
+        
+        // Add validation for ID number based on type
+        $idType = $this->request->getPost('id_type');
+        if ($idType == 'NRIC') {
+            $rules['id_number'] = 'required|numeric|exact_length[12]';
+            $rules['nric_front'] = 'uploaded[nric_front]|max_size[nric_front,2048]|mime_in[nric_front,image/jpg,image/jpeg,image/png,application/pdf]';
+            $rules['nric_back'] = 'uploaded[nric_back]|max_size[nric_back,2048]|mime_in[nric_back,image/jpg,image/jpeg,image/png,application/pdf]';
+        } elseif ($idType == 'Passport') {
+            $rules['id_number'] = 'required|alpha_numeric';
+            $rules['passport_file'] = 'uploaded[passport_file]|max_size[passport_file,2048]|mime_in[passport_file,image/jpg,image/jpeg,image/png,application/pdf]';
+        }
+        
+        // Validation for offer letter
+        $rules['offer_letter'] = 'uploaded[offer_letter]|max_size[offer_letter,5120]|mime_in[offer_letter,application/pdf]';
+        
+        // Apply validation
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
+        
+        // Get country code and phone
+        $countryCode = $this->request->getPost('country_code');
+        $phone = $this->request->getPost('phone');
+        
+        // Combine country code and phone number
+        $fullPhone = $countryCode . $phone;
+        
+        // Prepare data
+        $data = [
+            'first_name' => $this->request->getPost('first_name'),
+            'last_name' => $this->request->getPost('last_name'),
+            'email' => $this->request->getPost('email'),
+            'phone' => $fullPhone,
+            'address' => $this->request->getPost('address'),
+            'emergency_contact' => $this->request->getPost('emergency_contact'),
+            'date_of_birth' => $this->request->getPost('date_of_birth'),
+            'hire_date' => $this->request->getPost('hire_date'),
+            'status' => $this->request->getPost('status') ?: 'Active',
+            'department' => $this->request->getPost('department'),
+            'position' => $this->request->getPost('position'),
+            'id_type' => $this->request->getPost('id_type'),
+            'id_number' => $this->request->getPost('id_number')
+        ];
+        
+        // Create the directory if it doesn't exist
+        if (!is_dir($this->documentPath)) {
+            mkdir($this->documentPath, 0777, true);
+        }
+        
+        // Handle file uploads
+        // Offer Letter
+        $offerLetterFile = $this->request->getFile('offer_letter');
+        if ($offerLetterFile->isValid() && !$offerLetterFile->hasMoved()) {
+            $firstName = $this->request->getPost('first_name');
+            $lastName = $this->request->getPost('last_name');
+            $offerLetterName = $this->getUniqueFileName('offer_letter_', $firstName, $lastName, $offerLetterFile->getExtension());
+            $offerLetterFile->move($this->documentPath, $offerLetterName);
+            $data['offer_letter'] = $offerLetterName;
+        }
+        
+        // ID Documents
+        if ($idType == 'NRIC') {
+            // NRIC Front
+            $nricFrontFile = $this->request->getFile('nric_front');
+            if ($nricFrontFile->isValid() && !$nricFrontFile->hasMoved()) {
+                $firstName = $this->request->getPost('first_name');
+                $lastName = $this->request->getPost('last_name');
+                $nricFrontName = $this->getUniqueFileName('nric_front_', $firstName, $lastName, $nricFrontFile->getExtension());
+                $nricFrontFile->move($this->documentPath, $nricFrontName);
+                $data['nric_front'] = $nricFrontName;
+            }
+            
+            // NRIC Back
+            $nricBackFile = $this->request->getFile('nric_back');
+            if ($nricBackFile->isValid() && !$nricBackFile->hasMoved()) {
+                $firstName = $this->request->getPost('first_name');
+                $lastName = $this->request->getPost('last_name');
+                $nricBackName = $this->getUniqueFileName('nric_back_', $firstName, $lastName, $nricBackFile->getExtension());
+                $nricBackFile->move($this->documentPath, $nricBackName);
+                $data['nric_back'] = $nricBackName;
+            }
+        } elseif ($idType == 'Passport') {
+            // Passport
+            $passportFile = $this->request->getFile('passport_file');
+            if ($passportFile->isValid() && !$passportFile->hasMoved()) {
+                $firstName = $this->request->getPost('first_name');
+                $lastName = $this->request->getPost('last_name');
+                $passportName = $this->getUniqueFileName('passport_', $firstName, $lastName, $passportFile->getExtension());
+                $passportFile->move($this->documentPath, $passportName);
+                $data['passport_file'] = $passportName;
+            }
+        }
+        
+        // Set company_id based on role
+        if (session()->get('role_id') == 1) { // Admin
+            $data['company_id'] = $this->request->getPost('company_id');
+        } else { // Company user
+            $data['company_id'] = session()->get('company_id');
+        }
+        
+        // Save employee
+        $employeeId = $this->employeeModel->insert($data);
+        
+        // Check if compensation data was provided
+        $hourlyRate = $this->request->getPost('hourly_rate');
+        $monthlySalary = $this->request->getPost('monthly_salary');
+        
+        if (!empty($hourlyRate) || !empty($monthlySalary)) {
+            $compData = [
+                'employee_id' => $employeeId,
+                'hourly_rate' => $hourlyRate,
+                'monthly_salary' => $monthlySalary,
+                'effective_date' => date('Y-m-d'),
+                'created_by' => session()->get('user_id')
+            ];
+            
+            $this->compensationModel->save($compData);
+        }
+        
+        return redirect()->to('/employees')->with('success', 'Employee added successfully');
+    }    
+    
+    public function edit($id)
+    {
+        // Check company access
+        if (session()->get('role_id') != 1) {
+            $employee = $this->employeeModel->find($id);
+            if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        }
+        
+        $data = [
+            'title' => 'Edit Employee',
+            'employee' => $this->employeeModel->find($id),
+            'companies' => $this->companyModel->findAll(),
+            'validation' => \Config\Services::validation()
+        ];
+        
+        // If company role, only show their company
+        if (session()->get('role_id') != 1) {
+            $data['companies'] = $this->companyModel->where('id', session()->get('company_id'))->findAll();
+        }
+        
+        // Get compensation info
+        $compensation = $this->compensationModel->where('employee_id', $id)
+                                              ->orderBy('effective_date', 'DESC')
+                                              ->first();
+        $data['compensation'] = $compensation;
+        
+        if (empty($data['employee'])) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
+        return view('employees/edit', $data);
+    }
+    
+    public function update($id)
+    {
+        helper(['form']);
+        
+        // Check company access
+        $employee = $this->employeeModel->find($id);
+        if (empty($employee)) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
+        if (session()->get('role_id') != 1) {
+            if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        }
+        
+        // Create custom validation rules to handle email uniqueness properly
+        $rules = [
+            'first_name'    => 'required|min_length[2]',
+            'last_name'     => 'required|min_length[2]',
+            'hire_date'     => 'required|valid_date',
+            'id_type'       => 'permit_empty|in_list[Passport,NRIC]'
+        ];
+        
+        // Only check email uniqueness if it has changed
+        $email = $this->request->getPost('email');
+        if ($email != $employee['email']) {
+            $rules['email'] = 'required|valid_email|is_unique[employees.email]';
+        } else {
+            $rules['email'] = 'required|valid_email';
+        }
+        
+        // Add validation for ID number based on type
+        $idType = $this->request->getPost('id_type');
+        if ($idType == 'NRIC') {
+            $rules['id_number'] = 'permit_empty|numeric|exact_length[12]';
+            // Only require files if they are uploaded
+            if ($this->request->getFile('nric_front')->isValid()) {
+                $rules['nric_front'] = 'max_size[nric_front,2048]|mime_in[nric_front,image/jpg,image/jpeg,image/png,application/pdf]';
+            }
+            if ($this->request->getFile('nric_back')->isValid()) {
+                $rules['nric_back'] = 'max_size[nric_back,2048]|mime_in[nric_back,image/jpg,image/jpeg,image/png,application/pdf]';
+            }
+        } elseif ($idType == 'Passport') {
+            $rules['id_number'] = 'permit_empty|alpha_numeric';
+            if ($this->request->getFile('passport_file')->isValid()) {
+                $rules['passport_file'] = 'max_size[passport_file,2048]|mime_in[passport_file,image/jpg,image/jpeg,image/png,application/pdf]';
+            }
+        }
+        
+        // Validation for offer letter if uploaded
+        if ($this->request->getFile('offer_letter')->isValid()) {
+            $rules['offer_letter'] = 'max_size[offer_letter,5120]|mime_in[offer_letter,application/pdf]';
+        }
+        
+        // Apply validation
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
+        
+        // Get country code and phone
+        $countryCode = $this->request->getPost('country_code');
+        $phone = $this->request->getPost('phone');
+        
+        // Combine country code and phone number
+        $fullPhone = $countryCode . $phone;
+        
+        // Prepare data for update
+        $data = [
+            'first_name' => $this->request->getPost('first_name'),
+            'last_name' => $this->request->getPost('last_name'),
+            'email' => $email,
+            'phone' => $fullPhone,
+            'address' => $this->request->getPost('address'),
+            'emergency_contact' => $this->request->getPost('emergency_contact'),
+            'date_of_birth' => $this->request->getPost('date_of_birth'),
+            'hire_date' => $this->request->getPost('hire_date'),
+            'status' => $this->request->getPost('status'),
+            'department' => $this->request->getPost('department'),
+            'position' => $this->request->getPost('position'),
+            'id_type' => $this->request->getPost('id_type'),
+            'id_number' => $this->request->getPost('id_number')
+        ];
+        
+        // Create the directory if it doesn't exist
+        if (!is_dir($this->documentPath)) {
+            mkdir($this->documentPath, 0777, true);
+        }
+        
+        // Handle file uploads
+        // Offer Letter
+        $offerLetterFile = $this->request->getFile('offer_letter');
+        if ($offerLetterFile->isValid() && !$offerLetterFile->hasMoved()) {
+            $firstName = $this->request->getPost('first_name');
+            $lastName = $this->request->getPost('last_name');
+            $offerLetterName = $this->getUniqueFileName('offer_letter_', $firstName, $lastName, $offerLetterFile->getExtension());
+            $offerLetterFile->move($this->documentPath, $offerLetterName);
+            $data['offer_letter'] = $offerLetterName;
+            
+            // Remove old file if exists
+            if (!empty($employee['offer_letter']) && file_exists($this->documentPath . $employee['offer_letter'])) {
+                unlink($this->documentPath . $employee['offer_letter']);
+            }
+        }
+        
+        // ID Documents
+        if ($idType == 'NRIC') {
+            // NRIC Front
+            $nricFrontFile = $this->request->getFile('nric_front');
+            if ($nricFrontFile->isValid() && !$nricFrontFile->hasMoved()) {
+                $nricFrontName = $this->getUniqueFileName('nric_front_', $firstName, $lastName, $nricFrontFile->getExtension());
+                $nricFrontFile->move($this->documentPath, $nricFrontName);
+                $data['nric_front'] = $nricFrontName;
+                
+                // Remove old file if exists
+                if (!empty($employee['nric_front']) && file_exists($this->documentPath . $employee['nric_front'])) {
+                    unlink($this->documentPath . $employee['nric_front']);
+                }
+            }
+            
+            // NRIC Back
+            $nricBackFile = $this->request->getFile('nric_back');
+            if ($nricBackFile->isValid() && !$nricBackFile->hasMoved()) {
+                $nricBackName = $this->getUniqueFileName('nric_back_', $firstName, $lastName, $nricBackFile->getExtension());
+                $nricBackFile->move($this->documentPath, $nricBackName);
+                $data['nric_back'] = $nricBackName;
+                
+                // Remove old file if exists
+                if (!empty($employee['nric_back']) && file_exists($this->documentPath . $employee['nric_back'])) {
+                    unlink($this->documentPath . $employee['nric_back']);
+                }
+            }
+        } elseif ($idType == 'Passport') {
+            // Passport
+            $passportFile = $this->request->getFile('passport_file');
+            if ($passportFile->isValid() && !$passportFile->hasMoved()) {
+                $passportName = $this->getUniqueFileName('passport_', $firstName, $lastName, $passportFile->getExtension());
+                $passportFile->move($this->documentPath, $passportName);
+                $data['passport_file'] = $passportName;
+                
+                // Remove old file if exists
+                if (!empty($employee['passport_file']) && file_exists($this->documentPath . $employee['passport_file'])) {
+                    unlink($this->documentPath . $employee['passport_file']);
+                }
+            }
+        }
+        
+        // Only admin can change company
+        if (session()->get('role_id') == 1) {
+            $data['company_id'] = $this->request->getPost('company_id');
+        } else {
+            // For non-admin, preserve the original company_id
+            $data['company_id'] = $employee['company_id'];
+        }
+        
+        // Use direct database update which we know works
+        $db = \Config\Database::connect();
+        $db->table('employees')
+           ->where('id', $id)
+           ->update($data);
+        
+        // Check if compensation should be updated
+        $hourlyRate = $this->request->getPost('hourly_rate');
+        $monthlySalary = $this->request->getPost('monthly_salary');
+        $updateCompensation = $this->request->getPost('update_compensation');
+        
+        if ($updateCompensation && (!empty($hourlyRate) || !empty($monthlySalary))) {
+            $compData = [
+                'employee_id' => $id,
+                'hourly_rate' => $hourlyRate,
+                'monthly_salary' => $monthlySalary,
+                'effective_date' => date('Y-m-d'),
+                'created_by' => session()->get('user_id')
+            ];
+            
+            $this->compensationModel->save($compData);
+        }
+        
+        return redirect()->to('/employees')->with('success', 'Employee updated successfully');
+    }
+    
+    public function view($id)
+    {
+        // Check company access
+        if (session()->get('role_id') != 1) {
+            $employee = $this->employeeModel->find($id);
+            if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        }
+        
+        // Get employee with company info
+        $data['employee'] = $this->employeeModel->getEmployeeWithCompany($id);
+        
+        if (empty($data['employee'])) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
+        // Get compensation history
+        $data['compensation_history'] = $this->compensationModel->where('employee_id', $id)
+                                                             ->orderBy('effective_date', 'DESC')
+                                                             ->findAll();
+        
+        // Get attendance history (last 30 days)
+        $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));
+        $data['attendance'] = $this->attendanceModel->where('employee_id', $id)
+                                                  ->where('date >=', $thirtyDaysAgo)
+                                                  ->orderBy('date', 'DESC')
+                                                  ->findAll();
+        
+        $data['title'] = 'Employee Details';
+        
+        return view('employees/view', $data);
+    }
+    
+    public function delete($id)
+    {
+        // Check company access
+        if (session()->get('role_id') != 1) {
+            $employee = $this->employeeModel->find($id);
+            if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        }
+        
+        // Delete associated compensation records
+        $this->compensationModel->where('employee_id', $id)->delete();
+        
+        // Delete associated attendance records
+        $this->attendanceModel->where('employee_id', $id)->delete();
+        
+        // Delete employee
+        $this->employeeModel->delete($id);
+        
+        return redirect()->to('/employees')->with('success', 'Employee deleted successfully');
+    }
+
+    public function getByCompany($companyId)
+    {
+        // Check access if not admin
+        if (session()->get('role_id') != 1) {
+            if ($companyId != session()->get('company_id')) {
+                return $this->response->setJSON([]);
+            }
+        }
+        
+        // Get employees for this company
+        $employees = $this->employeeModel->where('company_id', $companyId)->findAll();
+        
+        // Return as JSON
+        return $this->response->setJSON($employees);
+    }
+}
