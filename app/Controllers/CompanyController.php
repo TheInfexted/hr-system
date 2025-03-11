@@ -187,6 +187,7 @@ class CompanyController extends BaseController
             // Prepare data
             $data = [
                 'name' => $this->request->getVar('name'),
+                'ssm_number' => $this->request->getVar('ssm_number'),
                 'address' => $this->request->getVar('address'),
                 'contact_person' => $this->request->getVar('contact_person'),
                 'contact_email' => $this->request->getVar('contact_email'),
@@ -284,6 +285,7 @@ class CompanyController extends BaseController
         // Prepare data for update
         $data = [
             'name' => $name,
+            'ssm_number' => $this->request->getPost('ssm_number'),
             'address' => $this->request->getPost('address'),
             'contact_person' => $this->request->getPost('contact_person'),
             'contact_email' => $email,

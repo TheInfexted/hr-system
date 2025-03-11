@@ -10,6 +10,8 @@
     <!-- DataTables CSS -->
     <link href="<?= base_url('assets/datatables/datatables.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/datatables/datatables.min.css') ?>" rel="stylesheet">
+    <!-- Air Datepicker CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.min.css" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -144,7 +146,11 @@
     <!-- DataTables JS -->
     <script src="<?= base_url('assets/datatables/datatables.js') ?>"></script>
     <script src="<?= base_url('assets/datatables/datatables.min.js') ?>"></script>
-    
+    <!-- Air Datepicker JS -->
+    <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.min.js"></script>
+    <!-- Air Datepicker locale (if needed) -->
+    <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/locale/en.js"></script>
+    <script src="<?= base_url('assets/js/common.js') ?>"></script>
     <!-- Common script for all pages -->
     <script>
         // Auto-hide alerts after 5 seconds

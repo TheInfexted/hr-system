@@ -56,33 +56,95 @@
             </div>
             
             <div class="col-md-6">
-                <h5 class="mb-3">Compensation Details</h5>
+                <h5 class="mb-3">Compensation Information</h5>
                 <table class="table table-bordered">
-                    <?php if (!empty($compensation['hourly_rate'])): ?>
-                        <tr>
-                            <th style="width: 30%">Hourly Rate</th>
-                            <td>$<?= number_format($compensation['hourly_rate'], 2) ?></td>
-                        </tr>
-                    <?php endif; ?>
-                    
-                    <?php if (!empty($compensation['monthly_salary'])): ?>
-                        <tr>
-                            <th style="width: 30%">Monthly Salary</th>
-                            <td>$<?= number_format($compensation['monthly_salary'], 2) ?></td>
-                        </tr>
-                    <?php endif; ?>
-                    
+                    <tr>
+                        <th colspan="2" class="table-secondary">Earnings</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 40%">Basic Salary</th>
+                        <td><?= !empty($compensation['monthly_salary']) ? '$' . number_format($compensation['monthly_salary'], 2) : 'N/A' ?></td>
+                    </tr>
+                    <tr>
+                        <th>Hourly Rate</th>
+                        <td><?= !empty($compensation['hourly_rate']) ? '$' . number_format($compensation['hourly_rate'], 2) : 'N/A' ?></td>
+                    </tr>
+                    <tr>
+                        <th>Allowance</th>
+                        <td><?= !empty($compensation['allowance']) ? '$' . number_format($compensation['allowance'], 2) : '$0.00' ?></td>
+                    </tr>
+                    <tr>
+                        <th>Overtime</th>
+                        <td><?= !empty($compensation['overtime']) ? '$' . number_format($compensation['overtime'], 2) : '$0.00' ?></td>
+                    </tr>
+                    <tr>
+                        <th colspan="2" class="table-secondary">Deductions</th>
+                    </tr>
+                    <tr>
+                        <th>EPF Employee</th>
+                        <td><?= !empty($compensation['epf_employee']) ? '$' . number_format($compensation['epf_employee'], 2) : '$0.00' ?></td>
+                    </tr>
+                    <tr>
+                        <th>SOCSO Employee</th>
+                        <td><?= !empty($compensation['socso_employee']) ? '$' . number_format($compensation['socso_employee'], 2) : '$0.00' ?></td>
+                    </tr>
+                    <tr>
+                        <th>EIS Employee</th>
+                        <td><?= !empty($compensation['eis_employee']) ? '$' . number_format($compensation['eis_employee'], 2) : '$0.00' ?></td>
+                    </tr>
+                    <tr>
+                        <th>PCB</th>
+                        <td><?= !empty($compensation['pcb']) ? '$' . number_format($compensation['pcb'], 2) : '$0.00' ?></td>
+                    </tr>
                     <tr>
                         <th>Effective Date</th>
                         <td><?= date('M d, Y', strtotime($compensation['effective_date'])) ?></td>
                     </tr>
-                    
                     <tr>
                         <th>Last Updated</th>
                         <td><?= date('M d, Y', strtotime($compensation['created_at'])) ?></td>
                     </tr>
                 </table>
+                
+                <?php
+                // Calculate total earnings and deductions
+                $totalEarnings = ($compensation['monthly_salary'] ?? 0) + 
+                                ($compensation['allowance'] ?? 0) + 
+                                ($compensation['overtime'] ?? 0);
+                
+                $totalDeductions = ($compensation['epf_employee'] ?? 0) + 
+                                   ($compensation['socso_employee'] ?? 0) +
+                                   ($compensation['eis_employee'] ?? 0) +
+                                   ($compensation['pcb'] ?? 0);
+                
+                $netPay = $totalEarnings - $totalDeductions;
+                ?>
+                
+                <div class="card mt-3 bg-light">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>Total Earnings</h6>
+                                <h4 class="text-success"><?= '$' . number_format($totalEarnings, 2) ?></h4>
+                            </div>
+                            <div class="col-6">
+                                <h6>Total Deductions</h6>
+                                <h4 class="text-danger"><?= '$' . number_format($totalDeductions, 2) ?></h4>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="text-end">
+                            <h5>Net Pay: <span class="text-primary"><?= '$' . number_format($netPay, 2) ?></span></h5>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+        
+        <div class="mt-4">
+            <a href="<?= base_url('compensation/payslip/' . $employee['id']) ?>" class="btn btn-success">
+                <i class="bi bi-file-earmark-text me-2"></i> Generate Payslip
+            </a>
         </div>
     </div>
 </div>

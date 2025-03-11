@@ -26,6 +26,15 @@
             </div>
             
             <div class="mb-3">
+                <label for="ssm_number" class="form-label">SSM Number</label>
+                <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('ssm_number')) ? 'is-invalid' : '' ?>" 
+                    id="ssm_number" name="ssm_number" value="<?= old('ssm_number', $company['ssm_number']) ?>">
+                <?php if(isset($validation) && $validation->hasError('ssm_number')): ?>
+                    <div class="invalid-feedback"><?= $validation->getError('ssm_number') ?></div>
+                <?php endif; ?>
+            </div>
+
+            <div class="mb-3">
                 <label for="address" class="form-label">Address</label>
                 <textarea class="form-control" id="address" name="address" rows="3"><?= old('address', $company['address']) ?></textarea>
             </div>

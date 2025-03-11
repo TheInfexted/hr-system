@@ -44,6 +44,8 @@ $routes->get('employees/getEmployees', 'EmployeeController::getEmployees', ['fil
 //Compensation
 $routes->post('compensation/create/(:num)', 'CompensationController::store/$1', ['filter' => 'auth:1,2']);
 $routes->post('compensation/update/(:num)', 'CompensationController::update/$1', ['filter' => 'auth:1,2']);
+$routes->get('compensation/payslip/(:num)', 'CompensationController::generatePayslip/$1', ['filter' => 'auth']);
+$routes->post('compensation/payslip/(:num)', 'CompensationController::processPayslip/$1', ['filter' => 'auth']);
 //End Compensation
 
 //Attendance Controller

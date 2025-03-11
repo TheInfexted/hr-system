@@ -12,7 +12,7 @@ class CompanyModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
     
-    protected $allowedFields = ['name', 'address', 'contact_person', 'contact_email', 'contact_phone'];
+    protected $allowedFields = ['name', 'ssm_number', 'address', 'contact_person', 'contact_email', 'contact_phone'];
     
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';

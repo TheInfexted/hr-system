@@ -13,7 +13,8 @@ class CompensationModel extends Model
     protected $useSoftDeletes = false;
     
     protected $allowedFields = [
-        'employee_id', 'hourly_rate', 'monthly_salary', 'effective_date', 'created_by'
+        'employee_id', 'hourly_rate', 'monthly_salary', 'effective_date', 'created_by',
+        'allowance', 'overtime', 'epf_employee', 'socso_employee', 'eis_employee', 'pcb'
     ];
     
     protected $useTimestamps = true;

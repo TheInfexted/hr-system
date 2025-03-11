@@ -227,6 +227,9 @@
                         <a href="<?= base_url('compensation/history/'.$employee['id']) ?>" class="btn btn-info btn-sm text-white">
                             <i class="bi bi-clock-history me-1"></i> View History
                         </a>
+                        <a href="<?= base_url('compensation/payslip/'.$employee['id']) ?>" class="btn btn-success btn-sm text-white">
+                            <i class="bi bi-file-earmark-text me-1"></i> Generate Payslip
+                        </a>
                     </div>
                 </div>
 
