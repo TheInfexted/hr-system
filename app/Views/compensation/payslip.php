@@ -13,89 +13,98 @@
     
     <div class="card" id="payslip">
         <div class="card-body">
+            <!-- Header -->
             <div class="text-center mb-4">
                 <h3>Payslip For <?= $month ?> <?= $year ?></h3>
                 <h4><?= strtoupper($company['name']) ?></h4>
                 <p class="small"><?= $company['ssm_number'] ? '(' . $company['ssm_number'] . ')' : '' ?></p>
             </div>
             
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <table class="table table-sm table-borderless mb-0">
+            <!-- Employee Info -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <table class="table table-sm table-borderless">
                         <tr>
-                            <td style="width: 40%" class="ps-0 py-1">Pay Date</td>
-                            <td class="py-1">: <?= date('Y/m/d', strtotime($pay_date)) ?></td>
+                            <td width="120">Pay Date</td>
+                            <td>: <?= date('Y/m/d', strtotime($pay_date)) ?></td>
                         </tr>
                         <tr>
-                            <td class="ps-0 py-1">Working Days</td>
-                            <td class="py-1">: <?= $working_days ?></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <td style="width: 40%" class="ps-0 py-1">Employee ID</td>
-                            <td class="py-1">: <?= str_pad($employee['id'], 5, '0', STR_PAD_LEFT) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="ps-0 py-1">Name</td>
-                            <td class="py-1">: <?= strtoupper($employee['first_name'] . ' ' . $employee['last_name']) ?></td>
+                            <td>Working Days</td>
+                            <td>: <?= $working_days ?></td>
                         </tr>
                     </table>
                 </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-12">
-                    <table class="table table-sm table-bordered">
-                        <tr class="table-secondary">
-                            <th style="width: 30%">Earnings</th>
-                            <th style="width: 20%">Amount (RM)</th>
-                            <th style="width: 30%">Deductions</th>
-                            <th style="width: 20%">Amount (RM)</th>
+                <div class="col-6">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td style="white-space: nowrap;">Employee No</td>
+                            <td style="white-space: nowrap;">: <?= str_pad($employee['id'], 5, '0', STR_PAD_LEFT) ?></td>
                         </tr>
                         <tr>
-                            <td>Basic Pay</td>
-                            <td class="text-end"><?= number_format($basic_pay, 2) ?></td>
-                            <td>EPF Employee</td>
-                            <td class="text-end"><?= number_format($epf_employee, 2) ?></td>
+                            <td style="white-space: nowrap;">Employee Name</td>
+                            <td style="white-space: nowrap;">: <?= strtoupper($employee['first_name'] . ' ' . $employee['last_name']) ?></td>
                         </tr>
                         <tr>
-                            <td>Allowance</td>
-                            <td class="text-end"><?= number_format($allowance, 2) ?></td>
-                            <td>SOCSO Employee</td>
-                            <td class="text-end"><?= number_format($socso_employee, 2) ?></td>
+                            <td style="white-space: nowrap;">Contact No.</td>
+                            <td style="white-space: nowrap;">: <?= $employee['phone'] ?? 'N/A' ?></td>
                         </tr>
                         <tr>
-                            <td>Overtime</td>
-                            <td class="text-end"><?= number_format($overtime, 2) ?></td>
-                            <td>EIS Employee</td>
-                            <td class="text-end"><?= number_format($eis_employee, 2) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="border-bottom-0"></td>
-                            <td class="border-bottom-0"></td>
-                            <td>PCB</td>
-                            <td class="text-end"><?= number_format($pcb, 2) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-end"><strong>Total Earnings</strong></td>
-                            <td class="text-end"><strong><?= number_format($total_earnings, 2) ?></strong></td>
-                            <td class="text-end"><strong>Total Deductions</strong></td>
-                            <td class="text-end"><strong><?= number_format($total_deductions, 2) ?></strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" class="text-end"><strong>Net Pay</strong></td>
-                            <td class="text-end"><strong><?= number_format($net_pay, 2) ?></strong></td>
+                            <td style="white-space: nowrap;">Email</td>
+                            <td style="white-space: nowrap;">: <?= $employee['email'] ?? 'N/A' ?></td>
                         </tr>
                     </table>
                 </div>
             </div>
             
-            <div class="text-center mb-2 border p-2 bg-light">
-                <h5 class="mb-1">RM <?= number_format($net_pay, 2) ?></h5>
-                <p class="mb-0 small">
+            <!-- Earnings & Deductions Table -->
+            <table class="table table-bordered">
+                <tr style="background-color: #f0f0f0;">
+                    <th width="25%">Earnings</th>
+                    <th width="25%" class="text-end">Amount (RM)</th>
+                    <th width="25%">Deductions</th>
+                    <th width="25%" class="text-end">Amount (RM)</th>
+                </tr>
+                <tr>
+                    <td>Basic Pay</td>
+                    <td class="text-end"><?= number_format($basic_pay, 0) ?></td>
+                    <td>EPF Employee</td>
+                    <td class="text-end"><?= number_format($epf_employee, 0) ?></td>
+                </tr>
+                <tr>
+                    <td>Allowance</td>
+                    <td class="text-end"><?= number_format($allowance, 0) ?></td>
+                    <td>SOCSO Employee</td>
+                    <td class="text-end"><?= number_format($socso_employee, 0) ?></td>
+                </tr>
+                <tr>
+                    <td>Overtime</td>
+                    <td class="text-end"><?= number_format($overtime, 0) ?></td>
+                    <td>EIS Employee</td>
+                    <td class="text-end"><?= number_format($eis_employee, 0) ?></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>PCB</td>
+                    <td class="text-end"><?= number_format($pcb, 0) ?></td>
+                </tr>
+                <tr>
+                    <td><strong>Total Earnings</strong></td>
+                    <td class="text-end"><strong><?= number_format($total_earnings, 0) ?></strong></td>
+                    <td><strong>Total Deductions</strong></td>
+                    <td class="text-end"><strong><?= number_format($total_deductions, 0) ?></strong></td>
+                </tr>
+                <tr>
+                    <td colspan="2"></td>
+                    <td><strong>Net Pay</strong></td>
+                    <td class="text-end"><strong><?= number_format($net_pay, 0) ?></strong></td>
+                </tr>
+            </table>
+            
+            <!-- Amount in Words -->
+            <div class="text-center my-4">
+                <h5><?= number_format($net_pay, 0) ?></h5>
+                <p>
                 <?php
                 // Simple number to words function for the view
                 function numberToWords($number) {
@@ -188,25 +197,41 @@
                 </p>
             </div>
             
-            <div class="row mt-3">
+            <!-- Signature Section -->
+            <div class="row mt-5 pt-5">
                 <div class="col-6 text-center">
-                    <div class="signature-line"></div>
-                    <p class="mb-0 small">Employer Signature</p>
+                    <div class="border-top border-dark" style="width: 80%; margin: 0 auto;"></div>
+                    <p class="mt-2">Employer Signature</p>
                 </div>
                 <div class="col-6 text-center">
-                    <div class="signature-line"></div>
-                    <p class="mb-0 small">Employee Signature</p>
+                    <div class="border-top border-dark" style="width: 80%; margin: 0 auto;"></div>
+                    <p class="mt-2">Employee Signature</p>
                 </div>
             </div>
             
-            <div class="text-center mt-2">
-                <p class="mb-0 small text-muted">This is system generated payslip</p>
+            <!-- Footer -->
+            <div class="text-center mt-4">
+                <p class="small text-muted">This is system generated payslip</p>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+    /* Regular styles */
+    #payslip {
+        font-family: Arial, sans-serif;
+    }
+    #payslip table {
+        border-collapse: collapse;
+    }
+    #payslip .table-borderless td,
+    #payslip .table-borderless th {
+        border: none;
+        padding: 3px 5px;
+    }
+    
+    /* Print styles */
     @media print {
         body * {
             visibility: hidden;
@@ -219,65 +244,51 @@
             left: 0;
             top: 0;
             width: 100%;
-            max-height: 50vh;
+            height: 100%;
+            padding: 15px;
+            margin: 0;
+            box-shadow: none;
             border: none;
-            /* Scale content to fit half page */
-            transform-origin: top left;
-            transform: scale(0.9);
-            overflow: hidden;
         }
+        
+        /* Page settings */
+        @page {
+            size: A4 portrait;
+            margin: 1cm;
+        }
+        
+        /* Hide buttons */
+        .btn, button {
+            display: none !important;
+        }
+        
+        /* Card styling */
         .card {
             border: none !important;
+            box-shadow: none !important;
         }
-        /* Reduce font sizes */
-        #payslip h3 {
-            font-size: 18px;
-            margin-bottom: 5px;
+        
+        /* Table cells should have some padding */
+        td, th {
+            padding: 4px 8px !important;
         }
-        #payslip h4 {
-            font-size: 16px;
-            margin-bottom: 5px;
+        
+        /* Make sure borderless tables stay borderless */
+        .table-borderless td, 
+        .table-borderless th {
+            border: none !important;
         }
-        #payslip p, #payslip td, #payslip th {
-            font-size: 12px;
+        
+        /* Set specific widths for the main table */
+        .table-bordered {
+            width: 100% !important;
+            border-collapse: collapse !important;
         }
-        /* Reduce padding and margins */
-        #payslip .card-body {
-            padding: 10px;
+        
+        .table-bordered td,
+        .table-bordered th {
+            border: 1px solid #000 !important;
         }
-        #payslip .table td, #payslip .table th {
-            padding: 4px 8px;
-        }
-        #payslip .row {
-            margin-bottom: 10px !important;
-        }
-        /* Add a dashed line at the bottom to indicate where to cut */
-        #payslip:after {
-            content: "";
-            display: block;
-            position: fixed;
-            bottom: 50vh; /* 50% of viewport height */
-            left: 0;
-            width: 100%;
-            border-bottom: 2px dashed #000;
-        }
-        /* Hide any overflow */
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        html, body {
-            height: 100%;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-    }
-    
-    /* Style for the signature lines */
-    .signature-line {
-        border-top: 1px solid #000;
-        width: 80%;
-        margin: 40px auto 5px;
     }
 </style>
 <?= $this->endSection() ?>
