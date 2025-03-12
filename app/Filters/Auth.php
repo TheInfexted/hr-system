@@ -13,11 +13,12 @@ class Auth implements FilterInterface
             return redirect()->to('/login');
         }
         
-        // Check role permissions if arguments are provided
+        // IMPORTANT: Only check role permissions if arguments are provided
         if (!empty($arguments)) {
             $roleId = session()->get('role_id');
             
             if (!in_array($roleId, $arguments)) {
+                // This might be causing the redirect loop
                 return redirect()->to('/dashboard')->with('error', 'Access denied');
             }
         }

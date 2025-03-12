@@ -102,8 +102,8 @@ class AttendanceModel extends Model
         $companyModel = new \App\Models\CompanyModel();
         $company = $companyModel->find($companyId);
         
-        // Default work start time (e.g., 9:00 AM)
-        $workStartTime = '09:00:00';
+        // Default work start time 
+        $workStartTime = '10:00:00';
         
         // If company has specific work start time, use that
         if (!empty($company['work_start_time'])) {
