@@ -62,6 +62,10 @@ class DashboardController extends BaseController
             $data['company_count'] = 1;
         }
         
+        if (session()->get('role_id') == 7) { 
+            return $this->employeeDashboard();
+        }
+
         // Get recent attendance
         $query = $attendanceModel->builder()
                                  ->select('attendance.*, employees.first_name, employees.last_name')
@@ -75,5 +79,29 @@ class DashboardController extends BaseController
         
         $data['title'] = 'Dashboard';
         return view('dashboard/index', $data);
+    }
+
+    private function employeeDashboard()
+    {
+        $userId = session()->get('user_id');
+        
+        // Get employee details
+        $employeeModel = new EmployeeModel();
+        $employee = $employeeModel->where('user_id', $userId)->first();
+        
+        // Get today's attendance
+        $attendanceModel = new AttendanceModel();
+        $today = date('Y-m-d');
+        $todayAttendance = $attendanceModel->where('employee_id', $employee['id'])
+                                        ->where('date', $today)
+                                        ->first();
+        
+        $data = [
+            'title' => 'Employee Dashboard',
+            'employee' => $employee,
+            'today_attendance' => $todayAttendance
+        ];
+        
+        return view('dashboard/employee', $data);
     }
 }

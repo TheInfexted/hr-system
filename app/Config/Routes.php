@@ -26,6 +26,7 @@ $routes->get('attendance/employee/(:num)', 'AttendanceController::employeeAttend
 $routes->get('companies', 'CompanyController::index', ['filter' => 'auth:1']);
 $routes->get('companies/create', 'CompanyController::create', ['filter' => 'auth:1']);
 $routes->get('companies/edit/(:num)', 'CompanyController::edit/$1', ['filter' => 'auth:1']);
+$routes->get('profile', 'ProfileController::index', ['filter' => 'auth']);
 
 // User Controller
 $routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:1,2']);
@@ -39,6 +40,8 @@ $routes->post('employees/create', 'EmployeeController::store', ['filter' => 'aut
 $routes->post('employees/update/(:num)', 'EmployeeController::update/$1', ['filter' => 'auth:1,2']);
 $routes->get('employees/delete/(:num)', 'EmployeeController::delete/$1', ['filter' => 'auth:1,2']);
 $routes->get('employees/getEmployees', 'EmployeeController::getEmployees', ['filter' => 'auth:1,2']);
+$routes->get('attendance/employee', 'AttendanceController::employee', ['filter' => 'auth:7']); 
+$routes->post('attendance/clock', 'AttendanceController::clockInOut', ['filter' => 'auth:7']);
 //End Employee
 
 //Compensation

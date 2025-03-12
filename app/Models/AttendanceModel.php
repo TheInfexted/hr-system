@@ -11,6 +11,7 @@ class AttendanceModel extends Model
     
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
+    protected $beforeInsert = ['determineStatus'];
     
     protected $allowedFields = [
         'employee_id', 'date', 'time_in', 'time_out', 'status', 'notes'
@@ -92,5 +93,44 @@ class AttendanceModel extends Model
         log_message('debug', 'Query returned ' . count($result) . ' records');
         
         return $result;
+    }
+
+    protected function determineStatus($data)
+    {
+        // Get company settings for work hours
+        $companyId = session()->get('company_id');
+        $companyModel = new \App\Models\CompanyModel();
+        $company = $companyModel->find($companyId);
+        
+        // Default work start time (e.g., 9:00 AM)
+        $workStartTime = '09:00:00';
+        
+        // If company has specific work start time, use that
+        if (!empty($company['work_start_time'])) {
+            $workStartTime = $company['work_start_time'];
+        }
+        
+        // Get the clock-in time
+        $timeIn = $data['data']['time_in'];
+        
+        // Extract just the time portion
+        $clockInTime = date('H:i:s', strtotime($timeIn));
+        $startTime = date('H:i:s', strtotime($workStartTime));
+        
+        // Determine if employee is late
+        if ($clockInTime > $startTime) {
+            // If more than 5 minutes late
+            $startTimestamp = strtotime($startTime);
+            $clockInTimestamp = strtotime($clockInTime);
+            
+            // Calculate minutes late
+            $minutesLate = round(($clockInTimestamp - $startTimestamp) / 60);
+            
+            if ($minutesLate > 5) {
+                $data['data']['status'] = 'Late';
+            }
+        }
+        
+        return $data;
     }
 }

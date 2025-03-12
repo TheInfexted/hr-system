@@ -64,7 +64,22 @@
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
                     </li>
-                    
+                    <?php if(session()->get('role_id') == 7): // Employee Role ?>
+                        <!-- Employee Menu -->
+                        <div class="nav-heading">My Information</div>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos(uri_string(), 'attendance/employee') === 0 ? 'active' : '' ?>" href="<?= base_url('attendance/employee') ?>">
+                                <i class="bi bi-calendar-check me-2"></i> My Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= uri_string() == 'profile' ? 'active' : '' ?>" href="<?= base_url('profile') ?>">
+                                <i class="bi bi-person me-2"></i> My Profile
+                            </a>
+                        </li>
+                    <?php else: ?>
+                     <!-- Admin/Manager Menu -->   
                     <div class="nav-heading">Human Resources</div>
                     
                     <li class="nav-item">
@@ -99,6 +114,7 @@
                             <i class="bi bi-building me-2"></i> Companies
                         </a>
                     </li>
+                    <?php endif; ?>
                     <?php endif; ?>
                     
                     <div class="nav-heading">Account</div>

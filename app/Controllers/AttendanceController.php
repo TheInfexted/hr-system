@@ -464,4 +464,87 @@ class AttendanceController extends BaseController
         
         return view('attendance/employee_attendance', $data);
     }
+
+    // In AttendanceController.php
+
+    public function clockInOut()
+    {
+        // Get current user (employee)
+        $userId = session()->get('user_id');
+        
+        // Get employee details from user ID
+        $employeeModel = new EmployeeModel();
+        $employee = $employeeModel->where('user_id', $userId)->first();
+        
+        if (empty($employee)) {
+            return redirect()->to('/dashboard')->with('error', 'Employee record not found.');
+        }
+        
+        $employeeId = $employee['id'];
+        $today = date('Y-m-d');
+        $now = date('Y-m-d H:i:s');
+        
+        // Check if employee already has an attendance record for today
+        $attendanceModel = new AttendanceModel();
+        $record = $attendanceModel->where('employee_id', $employeeId)
+                                ->where('date', $today)
+                                ->first();
+        
+        if (empty($record)) {
+            // No record for today - this is a clock in
+            $data = [
+                'employee_id' => $employeeId,
+                'date' => $today,
+                'time_in' => $now,
+                'status' => 'Present'
+            ];
+            
+            $attendanceModel->insert($data);
+            return redirect()->to('/attendance/employee')->with('success', 'You have successfully clocked in at ' . date('h:i A'));
+        } else if (empty($record['time_out'])) {
+            // Record exists but no clock out - this is a clock out
+            $data = [
+                'id' => $record['id'],
+                'time_out' => $now
+            ];
+            
+            $attendanceModel->update($record['id'], $data);
+            return redirect()->to('/attendance/employee')->with('success', 'You have successfully clocked out at ' . date('h:i A'));
+        } else {
+            // Already clocked in and out for today
+            return redirect()->to('/attendance/employee')->with('error', 'You have already completed your attendance for today.');
+        }
+    }
+
+    // In AttendanceController.php
+
+    public function employee()
+    {
+        // Get current user (employee)
+        $userId = session()->get('user_id');
+        
+        // Get employee details from user ID
+        $employeeModel = new EmployeeModel();
+        $employee = $employeeModel->where('user_id', $userId)->first();
+        
+        if (empty($employee)) {
+            return redirect()->to('/dashboard')->with('error', 'Employee record not found.');
+        }
+        
+        $employeeId = $employee['id'];
+        
+        // Get attendance for this employee
+        $attendanceModel = new AttendanceModel();
+        $attendance = $attendanceModel->where('employee_id', $employeeId)
+                                    ->orderBy('date', 'DESC')
+                                    ->findAll();
+        
+        $data = [
+            'title' => 'My Attendance',
+            'attendance' => $attendance,
+            'employee' => $employee
+        ];
+        
+        return view('attendance/employee', $data);
+    }
 }
