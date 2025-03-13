@@ -123,19 +123,19 @@ helper('permission');
                     </li>
                     <?php endif; ?>
                     
-                    <?php if(session()->get('role_id') == 1): // Admin only ?>
+                    <?php if(session()->get('role_id') == 1 || has_permission('view_companies')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'companies') === 0 ? 'active' : '' ?>" href="<?= base_url('companies') ?>">
                             <i class="bi bi-building me-2"></i> Companies
                         </a>
                     </li>
+                    <?php endif; ?>
                     
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'permissions') === 0 ? 'active' : '' ?>" href="<?= base_url('permissions') ?>">
                             <i class="bi bi-shield-lock me-2"></i> Permissions
                         </a>
                     </li>
-                    <?php endif; ?>
                     <?php endif; ?>
                     
                     <div class="nav-heading">Account</div>
