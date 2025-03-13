@@ -19,9 +19,9 @@ class UserController extends BaseController
     
     public function index()
     {
-        // Allow access for Admin, Company, and Sub-account roles
-        if (session()->get('role_id') != 1 && session()->get('role_id') != 2 && session()->get('role_id') != 3) {
-            return redirect()->to('/dashboard')->with('error', 'Access denied');
+        helper('permission');
+        if (!has_permission('view_users')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to view users.');
         }
         
         $data = [
@@ -33,6 +33,17 @@ class UserController extends BaseController
     
     public function getUsers()
     {
+        helper('permission');
+        if (!has_permission('view_users')) {
+            return $this->response->setJSON([
+                'draw' => 1,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'Access denied. You do not have permission to view users.'
+            ]);
+        }
+        
         try {
             $db = db_connect();
             $builder = $db->table('users')
@@ -133,6 +144,11 @@ class UserController extends BaseController
     
     public function create()
     {
+        helper('permission');
+        if (!has_permission('create_users')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to create users.');
+        }
+
         $data = [
             'title' => 'Create User',
             'roles' => $this->roleModel->findAll(),
@@ -152,6 +168,10 @@ class UserController extends BaseController
     public function store()
     {
         helper(['form']);
+        helper('permission');
+        if (!has_permission('create_users')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to create users.');
+        }
         
         // Validation
         if (!$this->validate($this->userModel->validationRules, $this->userModel->validationMessages)) {
@@ -188,6 +208,11 @@ class UserController extends BaseController
     
     public function edit($id)
     {
+        helper('permission');
+        if (!has_permission('edit_users')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to edit users.');
+        }
+
         // Check access permissions
         if (session()->get('role_id') == 2) {
             $user = $this->userModel->find($id);
@@ -220,6 +245,10 @@ class UserController extends BaseController
     public function update($id)
     {
         helper(['form']);
+        helper('permission');
+        if (!has_permission('edit_users')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to edit users.');
+        }
         
         // Check access permissions
         if (session()->get('role_id') == 2) {
@@ -270,12 +299,9 @@ class UserController extends BaseController
     
     public function delete($id)
     {
-        // Check access permissions
-        if (session()->get('role_id') == 2) {
-            $user = $this->userModel->find($id);
-            if ($user['company_id'] != session()->get('company_id')) {
-                return redirect()->to('/users')->with('error', 'Access denied');
-            }
+        helper('permission');
+        if (!has_permission('delete_users')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to delete users.');
         }
         
         // Don't allow deletion of own account
