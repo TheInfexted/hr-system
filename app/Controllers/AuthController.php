@@ -55,7 +55,8 @@ class AuthController extends BaseController
                     'role_id' => $user['role_id'],
                     'company_id' => $user['company_id'],
                     'permissions' => $permissions,
-                    'logged_in' => TRUE
+                    'logged_in' => TRUE,
+                    'created_at' => date('Y-m-d H:i:s') // Add session creation timestamp
                 ]);
                 
                 return redirect()->to('/dashboard');
@@ -65,6 +66,7 @@ class AuthController extends BaseController
         $session->setFlashdata('error', 'Invalid username or password');
         return redirect()->to('/login');
     }
+    
     
     public function logout()
     {

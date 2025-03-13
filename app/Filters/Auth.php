@@ -13,6 +13,22 @@ class Auth implements FilterInterface
             return redirect()->to('/login');
         }
         
+        // Check if permissions have been updated
+        $db = \Config\Database::connect();
+        $user = $db->table('users')
+            ->select('permission_updated_at')
+            ->where('id', session()->get('user_id'))
+            ->get()->getRow();
+        
+        if ($user && $user->permission_updated_at) {
+            $sessionCreatedTime = session()->get('created_at');
+            if (!$sessionCreatedTime || strtotime($user->permission_updated_at) > strtotime($sessionCreatedTime)) {
+                // Permissions updated since session was created - force logout
+                session()->destroy();
+                return redirect()->to('/login')->with('error', 'Your permissions have been updated. Please log in again.');
+            }
+        }
+        
         // If permissions are specified, check them
         if (!empty($arguments)) {
             // If the argument is a role ID (numeric), check role

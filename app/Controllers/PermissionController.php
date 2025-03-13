@@ -168,6 +168,12 @@ class PermissionController extends BaseController
             // Update session if it's the current user
             if ($userId == session()->get('user_id')) {
                 session()->set('permissions', $permissions);
+            } else {
+                // For other users, invalidate their session by updating a timestamp
+                $db = \Config\Database::connect();
+                $db->table('users')->where('id', $userId)->update([
+                    'permission_updated_at' => date('Y-m-d H:i:s')
+                ]);
             }
             
             return redirect()->to('/permissions')->with('success', 'User permissions updated successfully');

@@ -8,8 +8,7 @@ if (!function_exists('has_permission')) {
      * @param string $permission The permission to check
      * @return bool
      */
-    function has_permission($permission)
-    {
+    function has_permission($permission) {
         $session = session();
         
         // Admin role always has all permissions
@@ -24,7 +23,7 @@ if (!function_exists('has_permission')) {
         if (empty($permissions)) {
             $db = \Config\Database::connect();
             
-            // Try to get user-specific permissions first
+            // Get user-specific permissions
             $userPermission = $db->table('user_permissions')
                               ->where('user_id', $session->get('user_id'))
                               ->get()->getRow();
@@ -32,7 +31,7 @@ if (!function_exists('has_permission')) {
             if ($userPermission) {
                 $permissions = json_decode($userPermission->permissions, true) ?? [];
             } else {
-                // Fall back to role permissions if no user-specific ones exist
+                // Fall back to role permissions
                 $role = $db->table('roles')->where('id', $session->get('role_id'))->get()->getRow();
                 
                 if ($role) {
