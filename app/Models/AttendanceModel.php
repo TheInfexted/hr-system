@@ -126,7 +126,7 @@ class AttendanceModel extends Model
             // Calculate minutes late
             $minutesLate = round(($clockInTimestamp - $startTimestamp) / 60);
             
-            if ($minutesLate > 5) {
+            if ($minutesLate > 15) {
                 $data['data']['status'] = 'Late';
             }
         }

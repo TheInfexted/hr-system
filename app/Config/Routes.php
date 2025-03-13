@@ -27,6 +27,7 @@ $routes->get('companies', 'CompanyController::index', ['filter' => 'auth:1']);
 $routes->get('companies/create', 'CompanyController::create', ['filter' => 'auth:1']);
 $routes->get('companies/edit/(:num)', 'CompanyController::edit/$1', ['filter' => 'auth:1']);
 $routes->get('profile', 'ProfileController::index', ['filter' => 'auth']);
+$routes->get('permissions', 'PermissionController::index', ['filter' => 'auth:1']);
 
 // User Controller
 $routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:1,2']);
@@ -65,6 +66,11 @@ $routes->post('companies/create', 'CompanyController::store', ['filter' => 'auth
 $routes->post('companies/update/(:num)', 'CompanyController::update/$1', ['filter' => 'auth:1']);
 $routes->get('companies/delete/(:num)', 'CompanyController::delete/$1', ['filter' => 'auth:1']);
 //End Companies
+
+//Permissions Controller
+$routes->get('permissions/edit/(:num)', 'PermissionController::edit/$1', ['filter' => 'auth:1']);
+$routes->post('permissions/update/(:num)', 'PermissionController::update/$1', ['filter' => 'auth:1']);
+//End Permissions
 
 // Authentication Routes
 $routes->post('login', 'AuthController::authenticate');

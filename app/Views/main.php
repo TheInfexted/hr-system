@@ -1,3 +1,7 @@
+<?php
+// Add the permission helper
+helper('permission');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,11 +72,14 @@
                         <!-- Employee Menu -->
                         <div class="nav-heading">My Information</div>
                         
+                        <?php if(has_permission('clock_attendance') || has_permission('view_attendance')): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos(uri_string(), 'attendance/employee') === 0 ? 'active' : '' ?>" href="<?= base_url('attendance/employee') ?>">
                                 <i class="bi bi-calendar-check me-2"></i> My Attendance
                             </a>
                         </li>
+                        <?php endif; ?>
+                        
                         <li class="nav-item">
                             <a class="nav-link <?= uri_string() == 'profile' ? 'active' : '' ?>" href="<?= base_url('profile') ?>">
                                 <i class="bi bi-person me-2"></i> My Profile
@@ -82,23 +89,31 @@
                      <!-- Admin/Manager Menu -->   
                     <div class="nav-heading">Human Resources</div>
                     
+                    <?php if(has_permission('view_employees')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'employees') === 0 ? 'active' : '' ?>" href="<?= base_url('employees') ?>">
                             <i class="bi bi-people me-2"></i> Employees
                         </a>
                     </li>
+                    <?php endif; ?>
+                    
+                    <?php if(has_permission('view_compensation')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'compensation') === 0 ? 'active' : '' ?>" href="<?= base_url('compensation') ?>">
                             <i class="bi bi-cash-coin me-2"></i> Compensation
                         </a>
                     </li>
+                    <?php endif; ?>
+                    
+                    <?php if(has_permission('view_attendance')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'attendance') === 0 ? 'active' : '' ?>" href="<?= base_url('attendance') ?>">
                             <i class="bi bi-calendar-check me-2"></i> Attendance
                         </a>
                     </li>
+                    <?php endif; ?>
                     
-                    <?php if(session()->get('role_id') == 1 || session()->get('role_id') == 2): // Admin or Company ?>
+                    <?php if(has_permission('view_users')): ?>
                     <div class="nav-heading">Management</div>
                     
                     <li class="nav-item">
@@ -112,6 +127,12 @@
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'companies') === 0 ? 'active' : '' ?>" href="<?= base_url('companies') ?>">
                             <i class="bi bi-building me-2"></i> Companies
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link <?= strpos(uri_string(), 'permissions') === 0 ? 'active' : '' ?>" href="<?= base_url('permissions') ?>">
+                            <i class="bi bi-shield-lock me-2"></i> Permissions
                         </a>
                     </li>
                     <?php endif; ?>
@@ -137,6 +158,8 @@
                                 <i class="bi bi-person-circle me-1"></i> <?= session()->get('username') ?>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="<?= base_url('profile') ?>">My Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="<?= base_url('logout') ?>">Logout</a></li>
                             </ul>
                         </div>

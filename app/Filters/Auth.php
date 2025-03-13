@@ -13,13 +13,24 @@ class Auth implements FilterInterface
             return redirect()->to('/login');
         }
         
-        // IMPORTANT: Only check role permissions if arguments are provided
+        // If permissions are specified, check them
         if (!empty($arguments)) {
-            $roleId = session()->get('role_id');
-            
-            if (!in_array($roleId, $arguments)) {
-                // This might be causing the redirect loop
-                return redirect()->to('/dashboard')->with('error', 'Access denied');
+            // If the argument is a role ID (numeric), check role
+            if (is_numeric($arguments[0])) {
+                $roleId = session()->get('role_id');
+                
+                if (!in_array($roleId, $arguments)) {
+                    return redirect()->to('/dashboard')->with('error', 'Access denied. Insufficient role privileges.');
+                }
+            } 
+            // If the argument is a permission string, check permission
+            else {
+                // Load permission helper if not already loaded
+                helper('permission');
+                
+                if (!has_permission($arguments[0])) {
+                    return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have the required permission.');
+                }
             }
         }
     }
