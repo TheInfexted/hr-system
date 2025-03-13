@@ -33,79 +33,102 @@ class UserController extends BaseController
     
     public function getUsers()
     {
-        $db = db_connect();
-        $builder = $db->table('users')
-                      ->select('users.id, users.username, users.email, roles.name as role, companies.name as company')
-                      ->join('roles', 'roles.id = users.role_id')
-                      ->join('companies', 'companies.id = users.company_id', 'left');
-        
-        // Apply filtering based on user role
-        if (session()->get('role_id') == 2 || session()->get('role_id') == 3) { 
-            $builder->where('users.company_id', session()->get('company_id'));
-        }
-        
-        // Get request parameters
-        $request = service('request');
-        $draw = $request->getGet('draw');
-        $start = $request->getGet('start');
-        $length = $request->getGet('length');
-        $search = $request->getGet('search')['value'];
-        $order = $request->getGet('order')[0];
-        $columnIndex = $order['column'];
-        $columnName = $request->getGet('columns')[$columnIndex]['data'];
-        $columnSortOrder = $order['dir'];
-
-        // Apply search
-        if (!empty($search)) {
-            $builder->groupStart();
-            $builder->like('users.username', $search);
-            $builder->orLike('users.email', $search);
-            $builder->orLike('roles.name', $search);
-            $builder->orLike('companies.name', $search);
-            $builder->groupEnd();
-        }
-
-        // Get total records
-        $totalRecords = $builder->countAllResults(false);
-
-        // Apply ordering
-        if ($columnName != 'action' && $columnName != 'no') {
-            $builder->orderBy($columnName, $columnSortOrder);
-        } else {
-            $builder->orderBy('users.id', 'DESC');
-        }
-
-        // Apply pagination
-        $builder->limit($length, $start);
-
-        // Get final result
-        $result = $builder->get()->getResult();
-
-        // Prepare response data
-        $data = [];
-        $no = $start + 1;
-
-        foreach ($result as $row) {
-            $row->no = $no++;
+        try {
+            $db = db_connect();
+            $builder = $db->table('users')
+                        ->select('users.id, users.username, users.email, roles.name as role, companies.name as company')
+                        ->join('roles', 'roles.id = users.role_id')
+                        ->join('companies', 'companies.id = users.company_id', 'left');
             
-            // Add action buttons
-            $row->action = '<div class="btn-group" role="group">
-                              <a href="'.base_url('users/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>
-                              <a href="'.base_url('users/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</a>
-                            </div>';
+            // Apply filtering based on user role
+            if (session()->get('role_id') == 2 || session()->get('role_id') == 3) { 
+                $builder->where('users.company_id', session()->get('company_id'));
+            }
             
-            $data[] = $row;
+            // Get request parameters
+            $request = service('request');
+            $draw = $request->getGet('draw') ? (int)$request->getGet('draw') : 1;
+            $start = $request->getGet('start') ? (int)$request->getGet('start') : 0;
+            $length = $request->getGet('length') ? (int)$request->getGet('length') : 10;
+            $search = $request->getGet('search')['value'] ?? '';
+            
+            // Handle order
+            $columnIndex = 0;
+            $columnSortOrder = 'asc';
+            if ($request->getGet('order')) {
+                $columnIndex = (int)$request->getGet('order')[0]['column'] ?? 0;
+                $columnSortOrder = $request->getGet('order')[0]['dir'] ?? 'asc';
+            }
+            
+            $columnName = $request->getGet('columns')[$columnIndex]['data'] ?? 'id';
+    
+            // Apply search
+            if (!empty($search)) {
+                $builder->groupStart();
+                $builder->like('users.username', $search);
+                $builder->orLike('users.email', $search);
+                $builder->orLike('roles.name', $search);
+                $builder->orLike('companies.name', $search);
+                $builder->groupEnd();
+            }
+    
+            // Get total records without filtering
+            $totalRecords = $builder->countAllResults(false);
+    
+            // Apply ordering
+            if ($columnName != 'action' && $columnName != 'no') {
+                $builder->orderBy($columnName, $columnSortOrder);
+            } else {
+                $builder->orderBy('users.id', 'DESC');
+            }
+    
+            // Apply pagination
+            $builder->limit($length, $start);
+    
+            // Get final result
+            $result = $builder->get()->getResult();
+    
+            // Prepare response data
+            $data = [];
+            $no = $start + 1;
+    
+            foreach ($result as $row) {
+                $actionButtons = '<div class="btn-group" role="group">
+                                  <a href="'.base_url('users/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>
+                                  <a href="'.base_url('users/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</a>
+                                </div>';
+                
+                $data[] = [
+                    'no' => $no++,
+                    'username' => $row->username,
+                    'email' => $row->email,
+                    'role' => $row->role,
+                    'company' => $row->company ?? 'N/A',
+                    'action' => $actionButtons
+                ];
+            }
+    
+            // Format the response for DataTables
+            $response = [
+                'draw' => $draw,
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+                'data' => $data
+            ];
+    
+            return $this->response->setJSON($response);
+        } catch (\Exception $e) {
+            log_message('error', 'Error in UserController::getUsers: ' . $e->getMessage());
+            
+            // Return a valid JSON response even on error
+            return $this->response->setJSON([
+                'draw' => 1,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => $e->getMessage()
+            ]);
         }
-
-        // Format the response for DataTables
-        $response = [
-            'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalRecords,
-            'data' => $data
-        ];
-
-        return $this->response->setJSON($response);
     }
     
     public function create()

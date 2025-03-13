@@ -30,10 +30,10 @@ $routes->get('profile', 'ProfileController::index', ['filter' => 'auth']);
 $routes->get('permissions', 'PermissionController::index', ['filter' => 'auth:1']);
 
 // User Controller
-$routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:1,2']);
-$routes->post('users/create', 'UserController::store', ['filter' => 'auth:1,2']);
-$routes->post('users/update/(:num)', 'UserController::update/$1', ['filter' => 'auth:1,2']);
-$routes->get('users/delete/(:num)', 'UserController::delete/$1', ['filter' => 'auth:1,2']);
+$routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:1,2,3']);
+$routes->post('users/create', 'UserController::store', ['filter' => 'auth:1,2,3']);
+$routes->post('users/update/(:num)', 'UserController::update/$1', ['filter' => 'auth:1,2,3']);
+$routes->get('users/delete/(:num)', 'UserController::delete/$1', ['filter' => 'auth:1,2,3']);
 // End User
 
 //Employee Controller

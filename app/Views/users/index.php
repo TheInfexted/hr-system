@@ -44,7 +44,15 @@ $(document).ready(function() {
     $('#users-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: '<?= base_url('users/getUsers') ?>',
+        ajax: {
+            url: '<?= base_url('users/getUsers') ?>',
+            type: 'GET',
+            error: function(xhr, error, thrown) {
+                console.error('DataTables error:', error, thrown);
+                // Display user-friendly error
+                $('#users-table_processing').html("Error loading data. Please refresh the page.");
+            }
+        },
         columns: [
             { data: 'no' },
             { data: 'username' },
@@ -52,7 +60,23 @@ $(document).ready(function() {
             { data: 'role' },
             { data: 'company' },
             { data: 'action', orderable: false, searchable: false }
-        ]
+        ],
+        language: {
+            processing: "Loading...",
+            lengthMenu: "Show _MENU_ entries",
+            zeroRecords: "No matching records found",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        responsive: true
     });
 });
 </script>
