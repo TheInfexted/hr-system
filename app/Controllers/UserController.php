@@ -19,6 +19,11 @@ class UserController extends BaseController
     
     public function index()
     {
+        // Allow access for Admin, Company, and Sub-account roles
+        if (session()->get('role_id') != 1 && session()->get('role_id') != 2 && session()->get('role_id') != 3) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied');
+        }
+        
         $data = [
             'title' => 'User Management',
         ];
@@ -35,7 +40,7 @@ class UserController extends BaseController
                       ->join('companies', 'companies.id = users.company_id', 'left');
         
         // Apply filtering based on user role
-        if (session()->get('role_id') == 2) { // Company role
+        if (session()->get('role_id') == 2 || session()->get('role_id') == 3) { 
             $builder->where('users.company_id', session()->get('company_id'));
         }
         
