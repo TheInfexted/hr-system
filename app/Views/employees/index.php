@@ -1,6 +1,17 @@
 <?= $this->extend('main') ?>
 
 <?= $this->section('content') ?>
+<?php if(session()->getFlashdata('user_created')): ?>
+    <div class="alert alert-info">
+        <h5>User Account Created</h5>
+        <p>A new user account has been created for this employee:</p>
+        <ul>
+            <li><strong>Username:</strong> <?= session()->getFlashdata('user_created')['username'] ?></li>
+            <li><strong>Password:</strong> <?= session()->getFlashdata('user_created')['password'] ?></li>
+        </ul>
+        <p>Please make sure to share these credentials with the employee.</p>
+    </div>
+<?php endif; ?>
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Employee Management</h4>
@@ -22,6 +33,7 @@
                 <thead>
                     <tr>
                         <th>No</th>
+                        <th>User ID</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
@@ -83,9 +95,22 @@
 <script>
 $(document).ready(function() {
     $('#employees-table').DataTable({
-        // Client-side processing configuration
         processing: true,
-        serverSide: false,
+        serverSide: true,
+        ajax: {
+            url: '<?= base_url('employees/getEmployees') ?>',
+            type: 'GET'
+        },
+        columns: [
+            { data: 'no' },
+            { data: 'user_id' },
+            { data: 'name' },
+            { data: 'email' },
+            { data: 'phone' },
+            { data: 'status', orderable: false },
+            { data: 'company' },
+            { data: 'action', orderable: false, searchable: false }
+        ],
         paging: true,
         searching: true,
         ordering: true,

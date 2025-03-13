@@ -34,7 +34,7 @@ class EmployeeController extends BaseController
     {
         $db = db_connect();
         $employees = $db->table('employees')
-                        ->select('employees.id, employees.first_name, employees.last_name, employees.email, 
+                        ->select('employees.id, employees.user_id, employees.first_name, employees.last_name, employees.email, 
                                   employees.phone, employees.status, companies.name as company')
                         ->join('companies', 'companies.id = employees.company_id', 'left')
                         ->get()
@@ -54,24 +54,98 @@ class EmployeeController extends BaseController
         log_message('debug', 'getEmployees method called');
         
         try {
-            // Return a simple test response to see if it works
+            $db = db_connect();
+            $builder = $db->table('employees')
+                        ->select('employees.id, employees.user_id, employees.first_name, employees.last_name, employees.email, 
+                                  employees.phone, employees.status, companies.name as company')
+                        ->join('companies', 'companies.id = employees.company_id', 'left');
+            
+            // Get request parameters
+            $request = service('request');
+            $draw = $request->getGet('draw') ? (int)$request->getGet('draw') : 1;
+            $start = $request->getGet('start') ? (int)$request->getGet('start') : 0;
+            $length = $request->getGet('length') ? (int)$request->getGet('length') : 10;
+            $search = $request->getGet('search')['value'] ?? '';
+            
+            // Apply search
+            if (!empty($search)) {
+                $builder->groupStart();
+                $builder->like('employees.first_name', $search);
+                $builder->orLike('employees.last_name', $search);
+                $builder->orLike('employees.email', $search);
+                $builder->orLike('employees.phone', $search);
+                $builder->orLike('companies.name', $search);
+                $builder->groupEnd();
+            }
+            
+            // Get total records
+            $totalRecords = $builder->countAllResults(false);
+            
+            // Apply ordering
+            $columnIndex = $request->getGet('order')[0]['column'] ?? 0;
+            $columnName = $request->getGet('columns')[$columnIndex]['data'] ?? 'id';
+            $columnSortOrder = $request->getGet('order')[0]['dir'] ?? 'asc';
+            
+            if ($columnName != 'action' && $columnName != 'no') {
+                $builder->orderBy($columnName, $columnSortOrder);
+            } else {
+                $builder->orderBy('employees.id', 'DESC');
+            }
+            
+            // Apply pagination
+            $builder->limit($length, $start);
+            
+            // Get final result
+            $result = $builder->get()->getResult();
+            
+            // Prepare response data
+            $data = [];
+            $no = $start + 1;
+            
+            foreach ($result as $row) {
+                $actionButtons = '<div class="btn-group" role="group">
+                                  <a href="'.base_url('employees/view/'.$row->id).'" class="btn btn-sm btn-info">View</a>
+                                  <a href="'.base_url('employees/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>
+                                  <a href="'.base_url('employees/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</a>
+                                </div>';
+                
+                $statusBadge = '<span class="badge bg-';
+                switch($row->status) {
+                    case 'Active':
+                        $statusBadge .= 'success';
+                        break;
+                    case 'On Leave':
+                        $statusBadge .= 'warning';
+                        break;
+                    case 'Terminated':
+                        $statusBadge .= 'danger';
+                        break;
+                    default:
+                        $statusBadge .= 'secondary';
+                }
+                $statusBadge .= '">'.$row->status.'</span>';
+                
+                $data[] = [
+                    'no' => $no++,
+                    'user_id' => $row->user_id ?? 'N/A',
+                    'name' => $row->first_name . ' ' . $row->last_name,
+                    'email' => $row->email,
+                    'phone' => $row->phone,
+                    'status' => $statusBadge,
+                    'company' => $row->company ?? 'N/A',
+                    'action' => $actionButtons
+                ];
+            }
+            
             $response = [
-                'draw' => intval($this->request->getGet('draw') ?? 1),
-                'recordsTotal' => 1,
-                'recordsFiltered' => 1,
-                'data' => [
-                    [
-                        'name' => 'Test User',
-                        'email' => 'test@example.com',
-                        'phone' => '123456789',
-                        'status' => 'Active',
-                        'company' => 'Test Company',
-                        'action' => '<button class="btn btn-sm btn-primary">Test</button>'
-                    ]
-                ]
+                'draw' => $draw,
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+                'data' => $data
             ];
             
             return $this->response->setJSON($response);
+            
         } catch (\Exception $e) {
             log_message('error', 'Error in getEmployees: ' . $e->getMessage());
             
@@ -109,6 +183,8 @@ class EmployeeController extends BaseController
     public function store()
     {
         helper(['form']);
+
+        $userModel = new \App\Models\UserModel();
         
         // Set custom validation rules for ID based on type
         $rules = [
@@ -139,6 +215,64 @@ class EmployeeController extends BaseController
             return redirect()->back()->withInput()->with('validation', $this->validator);
         }
         
+        // Get employee data from form
+        $firstName = $this->request->getPost('first_name');
+        $lastName = $this->request->getPost('last_name');
+        $email = $this->request->getPost('email');
+        $companyId = session()->get('role_id') == 1 ? 
+                    $this->request->getPost('company_id') : 
+                    session()->get('company_id');
+        
+        // Check if a user with this email already exists
+        $db = \Config\Database::connect();
+        $existingUser = $db->table('users')
+                        ->where('email', $email)
+                        ->get()
+                        ->getRowArray();
+        
+        // User ID for the employee
+        $userId = null;
+        
+        if ($existingUser) {
+            // If user exists, use that ID
+            $userId = $existingUser['id'];
+            session()->setFlashdata('info', 'Employee linked to existing user account with the same email.');
+        } else {
+            // Create a new user account
+            // Generate a username from first name and last name
+            $baseUsername = strtolower(substr($firstName, 0, 1) . $lastName);
+            $username = $baseUsername;
+            
+            // Check if username exists, if so, add a number at the end
+            $count = 1;
+            while ($db->table('users')->where('username', $username)->countAllResults() > 0) {
+                $username = $baseUsername . $count;
+                $count++;
+            }
+            
+            // Generate a random password
+            $password = bin2hex(random_bytes(4)); // 8 character password
+            
+            // Set up user data
+            $userData = [
+                'username' => $username,
+                'email' => $email,
+                'password' => $password, // This will be hashed by the model's beforeInsert method
+                'role_id' => 7, // Assuming 7 is your 'Employee' role ID
+                'company_id' => $companyId,
+                'created_by' => session()->get('user_id')
+            ];
+            
+            // Insert the user and get the ID
+            $userId = $userModel->insert($userData);
+            
+            // Set a flashdata message with the username and password
+            session()->setFlashdata('user_created', [
+                'username' => $username,
+                'password' => $password
+            ]);
+        }
+
         // Get country code and phone
         $countryCode = $this->request->getPost('country_code');
         $phone = $this->request->getPost('phone');
@@ -148,10 +282,11 @@ class EmployeeController extends BaseController
         
         // Prepare data
         $data = [
-            'first_name' => $this->request->getPost('first_name'),
-            'last_name' => $this->request->getPost('last_name'),
-            'email' => $this->request->getPost('email'),
-            'phone' => $fullPhone,
+            'user_id' => $userId,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'phone' => $this->request->getPost('country_code') . $this->request->getPost('phone'),
             'address' => $this->request->getPost('address'),
             'emergency_contact' => $this->request->getPost('emergency_contact'),
             'date_of_birth' => $this->request->getPost('date_of_birth'),
@@ -160,7 +295,8 @@ class EmployeeController extends BaseController
             'department' => $this->request->getPost('department'),
             'position' => $this->request->getPost('position'),
             'id_type' => $this->request->getPost('id_type'),
-            'id_number' => $this->request->getPost('id_number')
+            'id_number' => $this->request->getPost('id_number'),
+            'company_id' => $companyId
         ];
         
         // Create the directory if it doesn't exist

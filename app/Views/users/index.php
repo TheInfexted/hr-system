@@ -22,6 +22,7 @@
                 <thead>
                     <tr>
                         <th>No</th>
+                        <th>ID</th>
                         <th>Username</th>
                         <th>Email</th>
                         <th>Role</th>
@@ -55,6 +56,7 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'no' },
+            { data: 'id' },
             { data: 'username' },
             { data: 'email' },
             { data: 'role' },
