@@ -24,6 +24,7 @@ $routes->get('attendance/edit/(:num)', 'AttendanceController::edit/$1', ['filter
 $routes->get('attendance/report', 'AttendanceController::report', ['filter' => 'auth:view_attendance_report']);
 $routes->get('attendance/employee/(:num)', 'AttendanceController::employeeAttendance/$1', ['filter' => 'auth:view_attendance']);
 $routes->get('attendance/employee', 'AttendanceController::employee', ['filter' => 'auth:clock_attendance']);
+$routes->get('attendance/employee_attendance/(:num)', 'AttendanceController::employee_attendance/$1', ['filter' => 'auth:view_attendance']);
 $routes->get('companies', 'CompanyController::index', ['filter' => 'auth:view_companies']);
 $routes->get('companies/create', 'CompanyController::create', ['filter' => 'auth:create_companies']);
 $routes->get('companies/edit/(:num)', 'CompanyController::edit/$1', ['filter' => 'auth:edit_companies']);

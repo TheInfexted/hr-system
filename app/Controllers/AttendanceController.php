@@ -435,12 +435,18 @@ class AttendanceController extends BaseController
         return view('attendance/result', $data);
     }
     
+    /**
+     * Display attendance records for a specific employee with date range filtering
+     *
+     * @param int $employeeId Employee ID
+     * @return mixed
+     */
     public function employeeAttendance($employeeId)
     {
-        // Check employee access
+        // Check employee access 
         if (session()->get('role_id') != 1) {
             $employee = $this->employeeModel->find($employeeId);
-            if ($employee['company_id'] != session()->get('company_id')) {
+            if (!$employee || $employee['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
             }
         }
@@ -451,15 +457,71 @@ class AttendanceController extends BaseController
             return redirect()->to('/employees')->with('error', 'Employee not found');
         }
         
-        // Get attendance records
-        $attendance = $this->attendanceModel->where('employee_id', $employeeId)
-                                          ->orderBy('date', 'DESC')
-                                          ->findAll();
+        // Initialize the attendance query
+        $builder = $this->attendanceModel->builder();
+        $builder->where('employee_id', $employeeId);
         
+        // Get query parameters for filtering
+        $request = service('request');
+        $startDate = $request->getGet('start_date');
+        $endDate = $request->getGet('end_date');
+        $period = $request->getGet('period');
+        
+        // Process date filters
+        if (!empty($startDate) && !empty($endDate)) {
+            // Custom date range filter
+            $builder->where('date >=', $startDate);
+            $builder->where('date <=', $endDate);
+        } else if (!empty($period)) {
+            // Pre-defined period filters
+            $today = date('Y-m-d');
+            
+            switch ($period) {
+                case 'week':
+                    // This week (starting from Monday)
+                    $weekStart = date('Y-m-d', strtotime('monday this week'));
+                    $builder->where('date >=', $weekStart);
+                    $builder->where('date <=', $today);
+                    break;
+                    
+                case 'month':
+                    // This month
+                    $monthStart = date('Y-m-01');
+                    $builder->where('date >=', $monthStart);
+                    $builder->where('date <=', $today);
+                    break;
+                    
+                case 'last_month':
+                    // Last month
+                    $lastMonthStart = date('Y-m-01', strtotime('first day of last month'));
+                    $lastMonthEnd = date('Y-m-t', strtotime('last day of last month'));
+                    $builder->where('date >=', $lastMonthStart);
+                    $builder->where('date <=', $lastMonthEnd);
+                    break;
+                    
+                case 'year':
+                    // This year
+                    $yearStart = date('Y-01-01');
+                    $builder->where('date >=', $yearStart);
+                    $builder->where('date <=', $today);
+                    break;
+            }
+        }
+        
+        // Order records by date (newest first)
+        $builder->orderBy('date', 'DESC');
+        
+        // Get filtered attendance records
+        $attendance = $builder->get()->getResultArray();
+        
+        // Prepare data for the view
         $data = [
             'title' => 'Employee Attendance',
             'employee' => $employee,
-            'attendance' => $attendance
+            'attendance' => $attendance,
+            'period' => $period,
+            'start_date' => $startDate,
+            'end_date' => $endDate
         ];
         
         return view('attendance/employee_attendance', $data);
@@ -546,5 +608,30 @@ class AttendanceController extends BaseController
         ];
         
         return view('attendance/employee', $data);
+    }
+
+    public function employee_attendance($employeeId) 
+    {
+        // This is a fallback method if camelCase naming convention causes issues in URL routing
+        // Simple implementation for backward compatibility
+        
+        $employee = $this->employeeModel->find($employeeId);
+        
+        if (empty($employee)) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
+        // Get attendance records
+        $attendance = $this->attendanceModel->where('employee_id', $employeeId)
+                                        ->orderBy('date', 'DESC')
+                                        ->findAll();
+        
+        $data = [
+            'title' => 'Employee Attendance',
+            'employee' => $employee,
+            'attendance' => $attendance
+        ];
+        
+        return view('attendance/employee_attendance', $data);
     }
 }
