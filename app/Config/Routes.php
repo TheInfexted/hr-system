@@ -62,6 +62,7 @@ $routes->get('companies/getCompanies', 'CompanyController::getCompanies', ['filt
 $routes->post('companies/create', 'CompanyController::store', ['filter' => 'auth:create_companies']);
 $routes->post('companies/update/(:num)', 'CompanyController::update/$1', ['filter' => 'auth:edit_companies']);
 $routes->get('companies/delete/(:num)', 'CompanyController::delete/$1', ['filter' => 'auth:delete_companies']);
+$routes->post('switch-company', 'CompanySwitcherController::switchCompany', ['filter' => 'auth']);
 
 // Permissions Controller Routes
 $routes->post('permissions/update/(:num)', 'PermissionController::update/$1', ['filter' => 'auth:1']);

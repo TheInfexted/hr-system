@@ -79,22 +79,22 @@
                     <?php endif; ?>
                 </div>
                 
-                <?php if(session()->get('role_id') == 1): // Admin only ?>
-                <div class="col-md-6">
-                    <label for="company_id" class="form-label">Company</label>
-                    <select class="form-select <?= (isset($validation) && $validation->hasError('company_id')) ? 'is-invalid' : '' ?>" 
-                           id="company_id" name="company_id">
-                        <option value="">Select Company</option>
-                        <?php foreach($companies as $company): ?>
-                            <option value="<?= $company['id'] ?>" <?= old('company_id') == $company['id'] ? 'selected' : '' ?>>
-                                <?= $company['name'] ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if(isset($validation) && $validation->hasError('company_id')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('company_id') ?></div>
-                    <?php endif; ?>
-                </div>
+                <?php if(session()->get('role_id') == 1 || has_permission('create_companies')): ?>
+                    <div class="col-md-6">
+                        <label for="company_id" class="form-label">Companies</label>
+                        <select class="form-select" id="company_id" name="companies[]" multiple>
+                            <option value="">Select Companies</option>
+                            <?php foreach($companies as $company): ?>
+                                <option value="<?= $company['id'] ?>" <?= (is_array(old('companies')) && in_array($company['id'], old('companies'))) ? 'selected' : '' ?>>
+                                    <?= $company['name'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="form-text">Hold Ctrl (Windows) or Command (Mac) to select multiple companies</div>
+                        <?php if(isset($validation) && $validation->hasError('companies')): ?>
+                            <div class="invalid-feedback"><?= $validation->getError('companies') ?></div>
+                        <?php endif; ?>
+                    </div>
                 <?php else: // For company managers, company is pre-selected ?>
                 <input type="hidden" name="company_id" value="<?= session()->get('company_id') ?>">
                 <?php endif; ?>

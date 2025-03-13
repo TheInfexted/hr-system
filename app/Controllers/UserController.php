@@ -3,18 +3,21 @@
 use App\Models\UserModel;
 use App\Models\RoleModel;
 use App\Models\CompanyModel;
+use App\Models\UserCompanyModel;
 
 class UserController extends BaseController
 {
     protected $userModel;
     protected $roleModel;
     protected $companyModel;
+    protected $userCompanyModel;
     
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->roleModel = new RoleModel();
         $this->companyModel = new CompanyModel();
+        $this->userCompanyModel = new UserCompanyModel();
     }
     
     public function index()
@@ -171,15 +174,15 @@ class UserController extends BaseController
         helper(['form']);
         helper('permission');
         if (!has_permission('create_users')) {
-            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to create users.');
+            return redirect()->to('/dashboard')->with('error', 'Access denied');
         }
         
         // Validation
-        if (!$this->validate($this->userModel->validationRules, $this->userModel->validationMessages)) {
+        if (!$this->validate($this->userModel->validationRules)) {
             return redirect()->back()->withInput()->with('validation', $this->validator);
         }
         
-        // Check if user has permission to create this role
+        // Check role permissions
         $roleId = $this->request->getVar('role_id');
         if (session()->get('role_id') == 2 && $roleId != 3) {
             return redirect()->back()->with('error', 'You can only create sub-account users');
@@ -194,15 +197,19 @@ class UserController extends BaseController
             'created_by' => session()->get('user_id')
         ];
         
-        // Set company_id based on role
-        if (session()->get('role_id') == 1) { // Admin
-            $data['company_id'] = $this->request->getVar('company_id');
-        } else { // Company
-            $data['company_id'] = session()->get('company_id');
-        }
+        // Save user
+        $userId = $this->userModel->insert($data);
         
-        // Save
-        $this->userModel->save($data);
+        // Handle multiple companies
+        $companies = $this->request->getVar('companies');
+        if (!empty($companies) && is_array($companies)) {
+            foreach ($companies as $companyId) {
+                $this->userCompanyModel->insert([
+                    'user_id' => $userId,
+                    'company_id' => $companyId
+                ]);
+            }
+        }
         
         return redirect()->to('/users')->with('success', 'User created successfully');
     }
@@ -221,12 +228,16 @@ class UserController extends BaseController
                 return redirect()->to('/users')->with('error', 'Access denied');
             }
         }
-        
+        $selectedCompanies = $this->userCompanyModel->where('user_id', $id)
+        ->findAll();
+        $selectedCompanyIds = array_column($selectedCompanies, 'company_id');
+
         $data = [
             'title' => 'Edit User',
             'user' => $this->userModel->find($id),
             'roles' => $this->roleModel->findAll(),
             'companies' => $this->companyModel->findAll(),
+            'selectedCompanies' => $selectedCompanyIds,
             'validation' => \Config\Services::validation()
         ];
         
@@ -285,6 +296,25 @@ class UserController extends BaseController
             $data['company_id'] = $postData['company_id'];
         }
         
+        // Update user table
+        $result = $this->userModel->update($id, $data);
+        
+        // Handle multiple companies
+        $companies = $this->request->getVar('companies');
+        
+        // Delete existing user-company relationships
+        $this->userCompanyModel->where('user_id', $id)->delete();
+        
+        // Add new relationships
+        if (!empty($companies) && is_array($companies)) {
+            foreach ($companies as $companyId) {
+                $this->userCompanyModel->insert([
+                    'user_id' => $id,
+                    'company_id' => $companyId
+                ]);
+            }
+        }
+
         // Direct database update
         $db = \Config\Database::connect();
         $builder = $db->table('users');

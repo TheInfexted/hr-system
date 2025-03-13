@@ -29,6 +29,26 @@ class Auth implements FilterInterface
             }
         }
         
+        // Check company-specific permissions
+        if (session()->get('role_id') != 1) { // Not admin
+            // Load company model
+            $companyModel = new \App\Models\CompanyModel();
+            $activeCompanyId = session()->get('active_company_id');
+            
+            if (!$activeCompanyId) {
+                session()->setFlashdata('error', 'Please select a company to continue');
+                return redirect()->to('/dashboard');
+            }
+            
+            // Check if the company exists
+            $company = $companyModel->find($activeCompanyId);
+            if (!$company) {
+                session()->remove('active_company_id');
+                session()->setFlashdata('error', 'Selected company not found');
+                return redirect()->to('/dashboard');
+            }
+        }
+
         // If permissions are specified, check them
         if (!empty($arguments)) {
             // If the argument is a role ID (numeric), check role
