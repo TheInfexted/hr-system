@@ -2,25 +2,6 @@
 // Add the permission helper
 helper('permission');
 ?>
-<?php
-// Get user's companies
-$userCompanyModel = new \App\Models\UserCompanyModel();
-$userCompanies = $userCompanyModel->getUserCompanies(session()->get('user_id'));
-?>
-
-<?php if(count($userCompanies) > 1): ?>
-<div class="mb-3">
-    <label class="form-label text-white-50">Current Company</label>
-    <select class="form-select" id="company-switcher">
-        <?php foreach($userCompanies as $company): ?>
-            <option value="<?= $company['id'] ?>" 
-                    <?= session()->get('active_company_id') == $company['id'] ? 'selected' : '' ?>>
-                <?= $company['name'] ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-</div>
-<?php endif; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -215,30 +196,6 @@ $userCompanies = $userCompanyModel->getUserCompanies(session()->get('user_id'));
         setTimeout(function() {
             $('.alert').fadeOut('slow');
         }, 5000);
-
-        $('#company-switcher').on('change', function() {
-            const companyId = $(this).val();
-            
-            $.ajax({
-                url: '<?= base_url('switch-company') ?>',
-                type: 'POST',
-                data: {
-                    company_id: companyId
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Reload the page to reflect changes
-                        window.location.reload();
-                    } else {
-                        alert(response.message || 'An error occurred');
-                    }
-                },
-                error: function() {
-                    alert('An error occurred while switching companies');
-                }
-            });
-        });
     </script>
     
     <?= $this->renderSection('scripts') ?>

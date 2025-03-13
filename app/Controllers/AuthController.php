@@ -14,7 +14,6 @@ class AuthController extends BaseController
     {
         $session = session();
         $userModel = new UserModel();
-        $userCompanyModel = new \App\Models\UserCompanyModel();
         
         $username = $this->request->getVar('username');
         $password = $this->request->getVar('password');
@@ -48,21 +47,16 @@ class AuthController extends BaseController
                         $permissions = json_decode($role->permissions, true) ?? [];
                     }
                 }
-
-                // Get user companies
-                $userCompanies = $userCompanyModel->getUserCompanies($user['id']);
-                $companyIds = array_column($userCompanies, 'id');
                 
                 $session->set([
                     'user_id' => $user['id'],
                     'username' => $user['username'],
                     'email' => $user['email'],
                     'role_id' => $user['role_id'],
-                    'company_ids' => $companyIds,
-                    'active_company_id' => !empty($companyIds) ? $companyIds[0] : null,
+                    'company_id' => $user['company_id'],
                     'permissions' => $permissions,
                     'logged_in' => TRUE,
-                    'created_at' => date('Y-m-d H:i:s')
+                    'created_at' => date('Y-m-d H:i:s') // Add session creation timestamp
                 ]);
                 
                 return redirect()->to('/dashboard');
