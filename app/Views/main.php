@@ -137,34 +137,19 @@ helper('permission');
                         </a>
                     </li>
                     <?php endif; ?>
-                    <div class="nav-heading">Account</div>
                     
+                    <!-- Include Company Switcher Component for Sub-Account Users -->
+                    <?php
+                    // Include the company switcher component
+                    include_once(APPPATH . 'Views/components/company_switcher.php');
+                    ?>
+                    
+                    <div class="nav-heading">Account</div>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('logout') ?>">
                             <i class="bi bi-box-arrow-right me-2"></i> Logout
                         </a>
                     </li>
-
-                    <?php if(session()->get('role_id') == 3): ?>
-                    <div class="col-md-10 ms-sm-auto px-4">
-                        <div class="alert <?= session()->get('active_company_id') ? 'alert-success' : 'alert-warning' ?> mt-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <?php if(session()->get('active_company_id')): ?>
-                                        <i class="bi bi-building me-2"></i> 
-                                        <strong>Viewing data for:</strong> <?= session()->get('active_company_name') ?>
-                                    <?php else: ?>
-                                        <i class="bi bi-exclamation-triangle me-2"></i>
-                                        <strong>Warning:</strong> No active company selected
-                                    <?php endif; ?>
-                                </div>
-                                <a href="<?= base_url('acknowledgments/companies') ?>" class="btn btn-sm <?= session()->get('active_company_id') ? 'btn-outline-success' : 'btn-success' ?>">
-                                    <i class="bi bi-arrow-repeat me-1"></i> Switch Company
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
                 </ul>
             </div>
             

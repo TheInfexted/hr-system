@@ -19,6 +19,11 @@ class CompensationController extends BaseController
     
     public function index()
     {
+        // Check if sub-account has active company
+        if (session()->get('role_id') == 3 && !session()->get('active_company_id')) {
+            return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+        }
+        
         // Get all compensation records based on role
         if (session()->get('role_id') == 1) {
             // Admin - can see all compensation records
@@ -28,12 +33,22 @@ class CompensationController extends BaseController
                 ->join('companies', 'companies.id = employees.company_id')
                 ->orderBy('compensation.effective_date', 'DESC')
                 ->findAll();
-        } else {
-            // Sub-Account or Company - can only see records for their company
+        } else if (session()->get('role_id') == 2) {
+            // Company Manager - can only see records for their company
             $compensations = $this->compensationModel
-                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id')
+                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name')
                 ->join('employees', 'employees.id = compensation.employee_id')
+                ->join('companies', 'companies.id = employees.company_id')
                 ->where('employees.company_id', session()->get('company_id'))
+                ->orderBy('compensation.effective_date', 'DESC')
+                ->findAll();
+        } else {
+            // Sub-Account - can only see records for their active company
+            $compensations = $this->compensationModel
+                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name')
+                ->join('employees', 'employees.id = compensation.employee_id')
+                ->join('companies', 'companies.id = employees.company_id')
+                ->where('employees.company_id', session()->get('active_company_id'))
                 ->orderBy('compensation.effective_date', 'DESC')
                 ->findAll();
         }
@@ -63,9 +78,20 @@ class CompensationController extends BaseController
         }
         
         // Check access permissions based on role
-        if (session()->get('role_id') != 1) { // Not Admin
-            // Sub-Account and Company users can only view employees from their company
+        if (session()->get('role_id') == 1) {
+            // Admin has access to all records
+        } else if (session()->get('role_id') == 2) {
+            // Company users can only view employees from their company
             if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account users can only view from their active company
+            if (!session()->get('active_company_id')) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+            
+            if ($employee['company_id'] != session()->get('active_company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
             }
         }
@@ -83,22 +109,35 @@ class CompensationController extends BaseController
     public function create($employeeId)
     {
         // Check employee access
-        if (session()->get('role_id') != 1) {
-            $employee = $this->employeeModel->find($employeeId);
+        $employee = $this->employeeModel->find($employeeId);
+        
+        if (empty($employee)) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
+        if (session()->get('role_id') == 1) {
+            // Admin has access to all employees
+        } else if (session()->get('role_id') == 2) {
+            // Company users can only access their own company's employees
             if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account users can only access their active company's employees
+            if (!session()->get('active_company_id')) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+            
+            if ($employee['company_id'] != session()->get('active_company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
             }
         }
         
         $data = [
             'title' => 'Add Compensation',
-            'employee' => $this->employeeModel->find($employeeId),
+            'employee' => $employee,
             'validation' => \Config\Services::validation()
         ];
-        
-        if (empty($data['employee'])) {
-            return redirect()->to('/employees')->with('error', 'Employee not found');
-        }
         
         return view('compensation/create', $data);
     }
@@ -148,24 +187,37 @@ class CompensationController extends BaseController
     public function history($employeeId)
     {
         // Check employee access
-        if (session()->get('role_id') != 1) {
-            $employee = $this->employeeModel->find($employeeId);
+        $employee = $this->employeeModel->find($employeeId);
+        
+        if (empty($employee)) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
+        if (session()->get('role_id') == 1) {
+            // Admin has access to all employees
+        } else if (session()->get('role_id') == 2) {
+            // Company users can only view their own company's employees
             if ($employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/employees')->with('error', 'Access denied');
+            }
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account users can only view their active company's employees
+            if (!session()->get('active_company_id')) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+            
+            if ($employee['company_id'] != session()->get('active_company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
             }
         }
         
         $data = [
             'title' => 'Compensation History',
-            'employee' => $this->employeeModel->find($employeeId),
+            'employee' => $employee,
             'history' => $this->compensationModel->where('employee_id', $employeeId)
                                             ->orderBy('effective_date', 'DESC')
                                             ->findAll()
         ];
-        
-        if (empty($data['employee'])) {
-            return redirect()->to('/employees')->with('error', 'Employee not found');
-        }
         
         return view('compensation/history', $data);
     }

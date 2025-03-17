@@ -19,6 +19,11 @@ class AttendanceController extends BaseController
     
     public function index()
     {
+        // Check if sub-account has active company
+        if (session()->get('role_id') == 3 && !session()->get('active_company_id')) {
+            return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+        }
+        
         $data = [
             'title' => 'Attendance Management',
             'today' => date('Y-m-d')
@@ -37,9 +42,20 @@ class AttendanceController extends BaseController
                       ->join('employees', 'employees.id = attendance.employee_id')
                       ->join('companies', 'companies.id = employees.company_id');
         
-        // Filter by company for non-admin users
-        if (session()->get('role_id') != 1) {
+        // Filter by company based on user role
+        if (session()->get('role_id') == 1) {
+            // Admin can see all - no filtering needed
+        } else if (session()->get('role_id') == 2) {
+            // Company users can only see their own company
             $builder->where('employees.company_id', session()->get('company_id'));
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account users can only see their active company
+            if (session()->get('active_company_id')) {
+                $builder->where('employees.company_id', session()->get('active_company_id'));
+            } else {
+                // If no active company is selected, show no results
+                $builder->where('attendance.id', 0);
+            }
         }
         
         // Date range filter
@@ -64,7 +80,7 @@ class AttendanceController extends BaseController
         $columnIndex = $order['column'];
         $columnName = $request->getGet('columns')[$columnIndex]['data'];
         $columnSortOrder = $order['dir'];
-
+    
         // Apply search
         if (!empty($search)) {
             $builder->groupStart();
@@ -75,10 +91,10 @@ class AttendanceController extends BaseController
             $builder->orLike('companies.name', $search);
             $builder->groupEnd();
         }
-
+    
         // Get total records
         $totalRecords = $builder->countAllResults(false);
-
+    
         // Apply ordering
         if ($columnName != 'action' && $columnName != 'no' && $columnName != 'employee_name') {
             $builder->orderBy($columnName, $columnSortOrder);
@@ -88,17 +104,17 @@ class AttendanceController extends BaseController
         } else {
             $builder->orderBy('attendance.date', 'DESC');
         }
-
+    
         // Pagination
         $builder->limit($length, $start);
-
+    
         // Get final result
         $result = $builder->get()->getResult();
-
+    
         // Prepare response data
         $data = [];
         $no = $start + 1;
-
+    
         foreach ($result as $row) {
             $row->no = $no++;
             
@@ -113,7 +129,7 @@ class AttendanceController extends BaseController
             
             $data[] = $row;
         }
-
+    
         // Format the response for DataTables
         $response = [
             'draw' => intval($draw),
@@ -121,7 +137,7 @@ class AttendanceController extends BaseController
             'recordsFiltered' => $totalRecords,
             'data' => $data
         ];
-
+    
         return $this->response->setJSON($response);
     }
     
@@ -328,6 +344,11 @@ class AttendanceController extends BaseController
     
     public function report()
     {
+        // Check if sub-account has active company
+        if (session()->get('role_id') == 3 && !session()->get('active_company_id')) {
+            return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+        }
+        
         $data = [
             'title' => 'Attendance Report',
             'companies' => [],
@@ -337,14 +358,32 @@ class AttendanceController extends BaseController
         // Get companies based on role
         if (session()->get('role_id') == 1) {
             $data['companies'] = $this->companyModel->findAll();
-        } else {
+        } else if (session()->get('role_id') == 2) {
             $data['companies'] = $this->companyModel->where('id', session()->get('company_id'))->findAll();
+        } else if (session()->get('role_id') == 3) {
+            $data['companies'] = $this->companyModel->where('id', session()->get('active_company_id'))->findAll();
         }
         
         // Get all employees, organized by company
-        $allEmployees = $this->employeeModel->select('id, first_name, last_name, company_id')->findAll();
         $employeesByCompany = [];
         
+        // Filter employees by company based on role
+        if (session()->get('role_id') == 1) {
+            // Admin can see all employees
+            $allEmployees = $this->employeeModel->select('id, first_name, last_name, company_id')->findAll();
+        } else if (session()->get('role_id') == 2) {
+            // Company users can only see their company's employees
+            $allEmployees = $this->employeeModel->select('id, first_name, last_name, company_id')
+                                             ->where('company_id', session()->get('company_id'))
+                                             ->findAll();
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account users can only see their active company's employees
+            $allEmployees = $this->employeeModel->select('id, first_name, last_name, company_id')
+                                             ->where('company_id', session()->get('active_company_id'))
+                                             ->findAll();
+        }
+        
+        // Organize employees by company
         foreach ($allEmployees as $employee) {
             $companyId = $employee['company_id'];
             if (!isset($employeesByCompany[$companyId])) {
@@ -372,9 +411,27 @@ class AttendanceController extends BaseController
             return redirect()->back()->with('error', 'Start date and end date are required');
         }
         
-        // Check company access
-        if (session()->get('role_id') != 1 && $companyId != session()->get('company_id')) {
-            return redirect()->to('/attendance/report')->with('error', 'Access denied');
+        // Check company access based on user role
+        if (session()->get('role_id') == 1) {
+            // Admin can access all companies - no need to check
+        } else if (session()->get('role_id') == 2) {
+            // Company users can only access their own company
+            if ($companyId && $companyId != session()->get('company_id')) {
+                return redirect()->to('/attendance/report')->with('error', 'Access denied');
+            }
+            // Force company filter to be the user's company
+            $companyId = session()->get('company_id');
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account users can only access their active company
+            if (!session()->get('active_company_id')) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+            
+            if ($companyId && $companyId != session()->get('active_company_id')) {
+                return redirect()->to('/attendance/report')->with('error', 'Access denied');
+            }
+            // Force company filter to be the active company
+            $companyId = session()->get('active_company_id');
         }
         
         // Get report data

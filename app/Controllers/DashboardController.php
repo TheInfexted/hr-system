@@ -20,7 +20,11 @@ class DashboardController extends BaseController
         // Apply company filter for non-admin users
         $companyId = null;
         if (session()->get('role_id') != 1) {
-            $companyId = session()->get('company_id');
+            if (session()->get('role_id') == 3) { // Sub-account
+                $companyId = session()->get('active_company_id');
+            } else { // Company manager or other roles
+                $companyId = session()->get('company_id');
+            }
         }
         
         // Get employee count
@@ -66,14 +70,34 @@ class DashboardController extends BaseController
         } else {
             $data['company_count'] = 1;
         }
-
+    
         // Get recent attendance
         $query = $attendanceModel->builder()
                                  ->select('attendance.*, employees.first_name, employees.last_name')
                                  ->join('employees', 'employees.id = attendance.employee_id');
-        if ($companyId) {
-            $query->where('employees.company_id', $companyId);
+        
+        // Apply proper company filtering based on user role
+        if (session()->get('role_id') == 1) {
+            // Admin can see all attendance but can filter by company from the URL
+            $adminCompanyFilter = $this->request->getGet('company_id');
+            if (!empty($adminCompanyFilter)) {
+                $query->where('employees.company_id', $adminCompanyFilter);
+            }
+        } else if (session()->get('role_id') == 3) {
+            // Sub-accounts see attendance for their active company
+            if (!empty($companyId)) {
+                $query->where('employees.company_id', $companyId);
+            } else {
+                // If no active company selected, show no results
+                $query->where('employees.id', 0);
+            }
+        } else {
+            // Company managers and other roles see their company data
+            if ($companyId) {
+                $query->where('employees.company_id', $companyId);
+            }
         }
+        
         $query->orderBy('attendance.date', 'DESC');
         $query->limit(5);
         $data['recent_attendance'] = $query->get()->getResultArray();

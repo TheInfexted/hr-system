@@ -32,17 +32,23 @@ class EmployeeController extends BaseController
     // In EmployeeController.php
     public function index()
     {
-        $db = db_connect();
-        $employees = $db->table('employees')
-                        ->select('employees.id, employees.user_id, employees.first_name, employees.last_name, employees.email, 
-                                  employees.phone, employees.status, companies.name as company')
-                        ->join('companies', 'companies.id = employees.company_id', 'left')
-                        ->get()
-                        ->getResult();
+        // Apply company filtering for sub-account users
+        $companyId = null;
+        if (session()->get('role_id') == 1) {
+            // Admin - no filtering needed
+        } else if (session()->get('role_id') == 2) {
+            // Company manager - filter by their company
+            $companyId = session()->get('company_id');
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account - filter by active company
+            $companyId = session()->get('active_company_id');
+            if (!$companyId) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+        }
         
         $data = [
-            'title' => 'Employee Management',
-            'employees' => $employees
+            'title' => 'Employee Management'
         ];
         
         return view('employees/index', $data);
@@ -59,6 +65,22 @@ class EmployeeController extends BaseController
                         ->select('employees.id, employees.user_id, employees.first_name, employees.last_name, employees.email, 
                                   employees.phone, employees.status, companies.name as company')
                         ->join('companies', 'companies.id = employees.company_id', 'left');
+            
+            // Apply company filtering based on user role
+            if (session()->get('role_id') == 1) {
+                // Admin can see all companies - no filtering needed
+            } else if (session()->get('role_id') == 2) {
+                // Company users can only see their own company
+                $builder->where('employees.company_id', session()->get('company_id'));
+            } else if (session()->get('role_id') == 3) {
+                // Sub-account users can only see their active company
+                if (session()->get('active_company_id')) {
+                    $builder->where('employees.company_id', session()->get('active_company_id'));
+                } else {
+                    // If no active company is selected, show no results
+                    $builder->where('employees.id', 0);
+                }
+            }
             
             // Get request parameters
             $request = service('request');
@@ -162,10 +184,18 @@ class EmployeeController extends BaseController
     public function create()
     {
         // For admin or company managers, show appropriate companies for selection
-        if (session()->get('role_id') == 1) { // Admin
+        if (session()->get('role_id') == 1) {
+            // Admin
             $companies = $this->companyModel->findAll();
-        } elseif (session()->get('role_id') == 2) { // Company manager
+        } else if (session()->get('role_id') == 2) {
+            // Company manager
             $companies = $this->companyModel->where('id', session()->get('company_id'))->findAll();
+        } else if (session()->get('role_id') == 3) {
+            // Sub-account
+            if (!session()->get('active_company_id')) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+            $companies = $this->companyModel->where('id', session()->get('active_company_id'))->findAll();
         } else {
             // Regular employee shouldn't be here
             return redirect()->to('/dashboard')->with('error', 'Access denied');
@@ -219,9 +249,19 @@ class EmployeeController extends BaseController
         $firstName = $this->request->getPost('first_name');
         $lastName = $this->request->getPost('last_name');
         $email = $this->request->getPost('email');
-        $companyId = session()->get('role_id') == 1 ? 
-                    $this->request->getPost('company_id') : 
-                    session()->get('company_id');
+        
+        // Set company_id based on user role
+        if (session()->get('role_id') == 1) {
+            $companyId = $this->request->getPost('company_id');
+        } else if (session()->get('role_id') == 2) {
+            $companyId = session()->get('company_id');
+        } else if (session()->get('role_id') == 3) {
+            // For sub-accounts, use the active company
+            $companyId = session()->get('active_company_id');
+            if (!$companyId) {
+                return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+            }
+        }
         
         // Check if a user with this email already exists
         $db = \Config\Database::connect();
@@ -380,23 +420,39 @@ class EmployeeController extends BaseController
     public function edit($id)
     {
         // Check company access
+        $employee = $this->employeeModel->find($id);
+        
+        if (empty($employee)) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
         if (session()->get('role_id') != 1) {
-            $employee = $this->employeeModel->find($id);
-            if ($employee['company_id'] != session()->get('company_id')) {
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
+            } else if (session()->get('role_id') == 3) {
+                // Sub-account users can only edit employees from their active company
+                if (!session()->get('active_company_id')) {
+                    return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+                }
+                
+                if ($employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/employees')->with('error', 'Access denied');
+                }
             }
         }
         
         $data = [
             'title' => 'Edit Employee',
-            'employee' => $this->employeeModel->find($id),
+            'employee' => $employee,
             'companies' => $this->companyModel->findAll(),
             'validation' => \Config\Services::validation()
         ];
         
-        // If company role, only show their company
-        if (session()->get('role_id') != 1) {
+        // If company role or sub-account, only show their company
+        if (session()->get('role_id') == 2) {
             $data['companies'] = $this->companyModel->where('id', session()->get('company_id'))->findAll();
+        } else if (session()->get('role_id') == 3) {
+            $data['companies'] = $this->companyModel->where('id', session()->get('active_company_id'))->findAll();
         }
         
         // Get compensation info
@@ -404,10 +460,6 @@ class EmployeeController extends BaseController
                                               ->orderBy('effective_date', 'DESC')
                                               ->first();
         $data['compensation'] = $compensation;
-        
-        if (empty($data['employee'])) {
-            return redirect()->to('/employees')->with('error', 'Employee not found');
-        }
         
         return view('employees/edit', $data);
     }
@@ -598,8 +650,22 @@ class EmployeeController extends BaseController
         // Check company access
         if (session()->get('role_id') != 1) {
             $employee = $this->employeeModel->find($id);
-            if ($employee['company_id'] != session()->get('company_id')) {
+            
+            if (!$employee) {
+                return redirect()->to('/employees')->with('error', 'Employee not found');
+            }
+            
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
+            } else if (session()->get('role_id') == 3) {
+                // Sub-account users can only view employees from their active company
+                if (!session()->get('active_company_id')) {
+                    return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+                }
+                
+                if ($employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/employees')->with('error', 'Access denied');
+                }
             }
         }
         
@@ -630,10 +696,24 @@ class EmployeeController extends BaseController
     public function delete($id)
     {
         // Check company access
+        $employee = $this->employeeModel->find($id);
+        
+        if (empty($employee)) {
+            return redirect()->to('/employees')->with('error', 'Employee not found');
+        }
+        
         if (session()->get('role_id') != 1) {
-            $employee = $this->employeeModel->find($id);
-            if ($employee['company_id'] != session()->get('company_id')) {
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
+            } else if (session()->get('role_id') == 3) {
+                // Sub-account users can only delete employees from their active company
+                if (!session()->get('active_company_id')) {
+                    return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
+                }
+                
+                if ($employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/employees')->with('error', 'Access denied');
+                }
             }
         }
         
