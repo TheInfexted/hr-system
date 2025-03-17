@@ -31,6 +31,8 @@ $routes->get('companies/edit/(:num)', 'CompanyController::edit/$1', ['filter' =>
 $routes->get('profile', 'ProfileController::index', ['filter' => 'auth']);
 $routes->get('permissions', 'PermissionController::index', ['filter' => 'auth:1']);
 $routes->get('permissions/edit/(:num)', 'PermissionController::edit/$1', ['filter' => 'auth:1']);
+$routes->get('acknowledgments', 'AcknowledgmentController::index', ['filter' => 'auth:2']);
+$routes->get('acknowledgments/companies', 'AcknowledgmentController::viewAccessibleCompanies', ['filter' => 'auth:3']);
 
 // User Controller Routes
 $routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:view_users']);
@@ -68,3 +70,8 @@ $routes->post('permissions/update/(:num)', 'PermissionController::update/$1', ['
 
 // Authentication Routes
 $routes->post('login', 'AuthController::authenticate');
+
+// Acknowledgment Routes
+$routes->post('acknowledgments/grant', 'AcknowledgmentController::grantAccess', ['filter' => 'auth:2']);
+$routes->get('acknowledgments/revoke/(:num)', 'AcknowledgmentController::revokeAccess/$1', ['filter' => 'auth:2']);
+$routes->get('acknowledgments/set-active/(:num)', 'AcknowledgmentController::setActiveCompany/$1', ['filter' => 'auth:3']);

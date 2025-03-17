@@ -1,6 +1,7 @@
 <?php namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\CompanyAcknowledgmentModel;
 
 class AuthController extends BaseController
 {
@@ -48,7 +49,8 @@ class AuthController extends BaseController
                     }
                 }
                 
-                $session->set([
+                // Set base session data
+                $sessionData = [
                     'user_id' => $user['id'],
                     'username' => $user['username'],
                     'email' => $user['email'],
@@ -57,16 +59,37 @@ class AuthController extends BaseController
                     'permissions' => $permissions,
                     'logged_in' => TRUE,
                     'created_at' => date('Y-m-d H:i:s') // Add session creation timestamp
-                ]);
+                ];
                 
-                return redirect()->to('/dashboard');
+                // For sub-accounts, check if they have acknowledged companies
+                if ($user['role_id'] == 3) {
+                    $acknowledgmentModel = new CompanyAcknowledgmentModel();
+                    $approvedCompanies = $acknowledgmentModel->getAcknowledgingCompanies($user['id'], 'approved');
+                    
+                    // If only one company, set it as active automatically
+                    if (count($approvedCompanies) == 1) {
+                        $sessionData['active_company_id'] = $approvedCompanies[0]['company_id'];
+                        $sessionData['active_company_name'] = $approvedCompanies[0]['company_name'];
+                    }
+                }
+                
+                // Set the session data
+                $session->set($sessionData);
+                
+                // Redirect based on role
+                if ($user['role_id'] == 3 && count($approvedCompanies ?? []) > 1) {
+                    // Sub-account with multiple companies should select one
+                    return redirect()->to('/acknowledgments/companies');
+                } else {
+                    // Regular redirect to dashboard
+                    return redirect()->to('/dashboard');
+                }
             }
         }
         
         $session->setFlashdata('error', 'Invalid username or password');
         return redirect()->to('/login');
     }
-    
     
     public function logout()
     {

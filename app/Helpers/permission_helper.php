@@ -25,9 +25,9 @@ if (!function_exists('has_permission')) {
             
             // Get user-specific permissions
             $userPermission = $db->table('user_permissions')
-                              ->where('user_id', $session->get('user_id'))
-                              ->get()->getRow();
-                              
+                             ->where('user_id', $session->get('user_id'))
+                             ->get()->getRow();
+                             
             if ($userPermission) {
                 $permissions = json_decode($userPermission->permissions, true) ?? [];
             } else {
@@ -52,7 +52,49 @@ if (!function_exists('has_permission')) {
             return true;
         }
         
-        // Check specific permission
+        // For sub-accounts with company acknowledgment
+        if ($session->get('role_id') == 3 && $session->get('active_company_id')) {
+            // Check if the sub-account is properly acknowledged
+            $acknowledgmentModel = new \App\Models\CompanyAcknowledgmentModel();
+            $isAcknowledged = $acknowledgmentModel->isUserAcknowledged(
+                $session->get('user_id'),
+                $session->get('active_company_id')
+            );
+            
+            if (!$isAcknowledged) {
+                return false;
+            }
+            
+            // If acknowledged and has the permission, allow access
+            return isset($permissions[$permission]) && $permissions[$permission] === true;
+        }
+        
+        // Standard permission check for other roles
         return isset($permissions[$permission]) && $permissions[$permission] === true;
+    }
+}
+
+if (!function_exists('get_active_company_id')) {
+    /**
+     * Get the active company ID for the current user
+     * 
+     * @return int|null
+     */
+    function get_active_company_id() {
+        $session = session();
+        
+        // For admin and company roles, use their company ID
+        if ($session->get('role_id') == 1) {
+            // Admins don't have a specific company
+            return null;
+        } elseif ($session->get('role_id') == 2) {
+            // Company users have their own company ID
+            return $session->get('company_id');
+        } elseif ($session->get('role_id') == 3) {
+            // Sub-accounts use their active company ID
+            return $session->get('active_company_id');
+        }
+        
+        return null;
     }
 }

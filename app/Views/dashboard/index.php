@@ -57,6 +57,29 @@
             </div>
         </div>
     </div>
+
+    <?php if(session()->get('role_id') == 2): ?>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Sub-Account Management</h5>
+                            <p class="card-text">
+                                Grant access to your company data for sub-accounts. This allows them to view and manage your employees, 
+                                attendance records, and compensation data based on their permissions.
+                            </p>
+                        </div>
+                        <a href="<?= base_url('acknowledgments') ?>" class="btn btn-primary">
+                            <i class="bi bi-key me-2"></i> Manage Sub-Account Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <div class="row">
