@@ -44,7 +44,7 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="working_days" class="form-label">Working Days</label>
-                    <input type="number" class="form-control" id="working_days" name="working_days" value="20" required>
+                    <input type="number" class="form-control" id="working_days" name="working_days" value="30" required>
                 </div>
                 <div class="col-md-6">
                     <label for="pay_date" class="form-label">Pay Date</label>
