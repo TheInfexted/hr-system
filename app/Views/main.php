@@ -131,6 +131,14 @@ helper('permission');
                     </li>
                     <?php endif; ?>
                     
+                    <?php if(session()->get('role_id') == 2): // Only show for Company Managers ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= strpos(uri_string(), 'acknowledgments') === 0 ? 'active' : '' ?>" href="<?= base_url('acknowledgments') ?>">
+                            <i class="bi bi-key me-2"></i> Manage Sub-Accounts
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                    
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'permissions') === 0 ? 'active' : '' ?>" href="<?= base_url('permissions') ?>">
                             <i class="bi bi-shield-lock me-2"></i> Permissions
