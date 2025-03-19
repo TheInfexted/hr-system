@@ -186,4 +186,90 @@ class PayslipController extends BaseController
         
         return view('payslips/admin_view', $data);
     }
+    
+    /**
+     * Mark a payslip as paid
+     */
+    public function markAsPaid($payslipId)
+    {
+        helper('permission');
+        
+        // Check permissions
+        if (!has_permission('mark_payslips_paid')) {
+            return redirect()->to('/payslips/admin')->with('error', 'Access denied. You do not have permission to mark payslips as paid.');
+        }
+        
+        // Get the payslip
+        $payslip = $this->payslipModel->find($payslipId);
+        
+        if (empty($payslip)) {
+            return redirect()->to('/payslips/admin')->with('error', 'Payslip not found.');
+        }
+        
+        // Get the employee
+        $employee = $this->employeeModel->find($payslip['employee_id']);
+        
+        // Security check based on role
+        if (session()->get('role_id') != 1) {
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+                }
+            }
+        }
+        
+        // Update the payslip status
+        $this->payslipModel->update($payslipId, [
+            'status' => 'paid',
+            'updated_at' => date('Y-m-d H:i:s'),
+            'remarks' => 'Marked as paid by ' . session()->get('username')
+        ]);
+        
+        return redirect()->to('/payslips/admin/view/' . $payslipId)->with('success', 'Payslip has been marked as paid.');
+    }
+    
+    /**
+     * Cancel a payslip
+     */
+    public function cancelPayslip($payslipId)
+    {
+        helper('permission');
+        
+        // Check permissions
+        if (!has_permission('edit_payslips')) {
+            return redirect()->to('/payslips/admin')->with('error', 'Access denied. You do not have permission to cancel payslips.');
+        }
+        
+        // Get the payslip
+        $payslip = $this->payslipModel->find($payslipId);
+        
+        if (empty($payslip)) {
+            return redirect()->to('/payslips/admin')->with('error', 'Payslip not found.');
+        }
+        
+        // Get the employee
+        $employee = $this->employeeModel->find($payslip['employee_id']);
+        
+        // Security check based on role
+        if (session()->get('role_id') != 1) {
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+                }
+            }
+        }
+        
+        // Update the payslip status
+        $this->payslipModel->update($payslipId, [
+            'status' => 'cancelled',
+            'updated_at' => date('Y-m-d H:i:s'),
+            'remarks' => 'Cancelled by ' . session()->get('username')
+        ]);
+        
+        return redirect()->to('/payslips/admin/view/' . $payslipId)->with('success', 'Payslip has been cancelled.');
+    }
 }

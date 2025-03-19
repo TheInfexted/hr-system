@@ -8,20 +8,18 @@
                 <i class="bi bi-printer me-2"></i> Print Payslip
             </button>
             
-            <?php if(session()->get('role_id') == 1 || session()->get('role_id') == 2): ?>
-                <?php if($payslip['status'] == 'generated'): ?>
-                <a href="<?= base_url('payslips/admin/mark-as-paid/' . $payslip['id']) ?>" class="btn btn-success" 
-                   onclick="return confirm('Mark this payslip as paid?')">
-                    <i class="bi bi-check-circle me-2"></i> Mark as Paid
-                </a>
-                <?php endif; ?>
-                
-                <?php if($payslip['status'] != 'cancelled'): ?>
-                <a href="<?= base_url('payslips/admin/cancel/' . $payslip['id']) ?>" class="btn btn-danger" 
-                   onclick="return confirm('Are you sure you want to cancel this payslip?')">
-                    <i class="bi bi-x-circle me-2"></i> Cancel Payslip
-                </a>
-                <?php endif; ?>
+            <?php if(has_permission('mark_payslips_paid') && $payslip['status'] == 'generated'): ?>
+            <a href="<?= base_url('payslips/admin/mark-as-paid/' . $payslip['id']) ?>" class="btn btn-success" 
+            onclick="return confirm('Mark this payslip as paid?')">
+                <i class="bi bi-check-circle me-2"></i> Mark as Paid
+            </a>
+            <?php endif; ?>
+            
+            <?php if(has_permission('edit_payslips') && $payslip['status'] != 'cancelled'): ?>
+            <a href="<?= base_url('payslips/admin/cancel/' . $payslip['id']) ?>" class="btn btn-danger" 
+            onclick="return confirm('Are you sure you want to cancel this payslip?')">
+                <i class="bi bi-x-circle me-2"></i> Cancel Payslip
+            </a>
             <?php endif; ?>
             
             <a href="<?= base_url('payslips/admin') ?>" class="btn btn-secondary">

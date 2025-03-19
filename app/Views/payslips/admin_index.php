@@ -69,13 +69,15 @@
                                     <a href="<?= base_url('payslips/admin/view/' . $payslip['id']) ?>" class="btn btn-sm btn-info">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <?php if(session()->get('role_id') == 1 || session()->get('role_id') == 2): ?>
+                                    <?php if(has_permission('mark_payslips_paid') && $payslip['status'] == 'generated'): ?>
                                     <a href="<?= base_url('payslips/admin/mark-as-paid/' . $payslip['id']) ?>" class="btn btn-sm btn-success" 
-                                       onclick="return confirm('Mark this payslip as paid?')">
+                                    onclick="return confirm('Mark this payslip as paid?')">
                                         <i class="bi bi-check-circle"></i>
                                     </a>
+                                    <?php endif; ?>
+                                    <?php if(has_permission('edit_payslips') && $payslip['status'] != 'cancelled'): ?>
                                     <a href="<?= base_url('payslips/admin/cancel/' . $payslip['id']) ?>" class="btn btn-sm btn-danger" 
-                                       onclick="return confirm('Are you sure you want to cancel this payslip?')">
+                                    onclick="return confirm('Are you sure you want to cancel this payslip?')">
                                         <i class="bi bi-x-circle"></i>
                                     </a>
                                     <?php endif; ?>

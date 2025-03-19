@@ -76,6 +76,12 @@ class PermissionController extends BaseController
                 'delete_compensation' => 'Delete Compensation',
                 'generate_payslip' => 'Generate Payslip',
             ],
+            'payslips' => [
+                'view_payslips' => 'View Payslips',
+                'edit_payslips' => 'Edit Payslips',
+                'delete_payslips' => 'Delete Payslips',
+                'mark_payslips_paid' => 'Mark Payslips as Paid',
+            ],
             'users' => [
                 'view_users' => 'View Users',
                 'create_users' => 'Create Users',
@@ -87,6 +93,12 @@ class PermissionController extends BaseController
                 'create_companies' => 'Create Companies',
                 'edit_companies' => 'Edit Companies',
                 'delete_companies' => 'Delete Companies',
+            ],
+            'events' => [
+                'view_events' => 'View Events',
+                'create_events' => 'Create Events',
+                'edit_events' => 'Edit Events',
+                'delete_events' => 'Delete Events',
             ],
         ];
         
