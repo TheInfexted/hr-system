@@ -112,6 +112,14 @@ helper('permission');
                         </a>
                     </li>
                     <?php endif; ?>
+
+                    <?php if(has_permission('view_events') || session()->get('role_id') == 7): // Allow all users including employees ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= strpos(uri_string(), 'events') === 0 ? 'active' : '' ?>" href="<?= base_url('events') ?>">
+                            <i class="bi bi-calendar-event me-2"></i> Events
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     
                     <?php if(has_permission('view_users')): ?>
                     <div class="nav-heading">Management</div>

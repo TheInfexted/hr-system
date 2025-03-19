@@ -33,6 +33,11 @@ $routes->get('permissions', 'PermissionController::index', ['filter' => 'auth:1'
 $routes->get('permissions/edit/(:num)', 'PermissionController::edit/$1', ['filter' => 'auth:1']);
 $routes->get('acknowledgments', 'AcknowledgmentController::index', ['filter' => 'auth:2']);
 $routes->get('acknowledgments/companies', 'AcknowledgmentController::viewAccessibleCompanies', ['filter' => 'auth:3']);
+$routes->get('events', 'EventController::index', ['filter' => 'auth']);
+$routes->get('events/create', 'EventController::create', ['filter' => 'auth:create_events']);
+$routes->get('events/edit/(:num)', 'EventController::edit/$1', ['filter' => 'auth:edit_events']);
+$routes->get('events/view/(:num)', 'EventController::view/$1', ['filter' => 'auth']);
+$routes->get('events/delete/(:num)', 'EventController::delete/$1', ['filter' => 'auth:delete_events']);
 
 // User Controller Routes
 $routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:view_users']);
@@ -75,3 +80,9 @@ $routes->post('login', 'AuthController::authenticate');
 $routes->post('acknowledgments/grant', 'AcknowledgmentController::grantAccess', ['filter' => 'auth:2']);
 $routes->get('acknowledgments/revoke/(:num)', 'AcknowledgmentController::revokeAccess/$1', ['filter' => 'auth:2']);
 $routes->get('acknowledgments/set-active/(:num)', 'AcknowledgmentController::setActiveCompany/$1', ['filter' => 'auth:3']);
+
+//Event Routes
+$routes->get('events/getEvents', 'EventController::getEvents', ['filter' => 'auth']);
+$routes->get('events/upcomingEvents', 'EventController::upcomingEvents', ['filter' => 'auth']);
+$routes->post('events/create', 'EventController::store', ['filter' => 'auth:create_events']);
+$routes->post('events/update/(:num)', 'EventController::update/$1', ['filter' => 'auth:edit_events']);

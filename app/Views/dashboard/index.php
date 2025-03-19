@@ -165,6 +165,9 @@
                         <i class="bi bi-person-badge me-2"></i> Create New User
                     </a>
                     <?php endif; ?>
+                    <?php 
+                    include_once(APPPATH . 'Views/components/upcoming_events.php');
+                    ?>
                 </div>
             </div>
         </div>
