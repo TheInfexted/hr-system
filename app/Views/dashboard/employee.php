@@ -1,4 +1,3 @@
-<!-- app/Views/dashboard/employee.php -->
 <?= $this->extend('main') ?>
 
 <?= $this->section('content') ?>
@@ -57,6 +56,23 @@
             </div>
         </div>
         
+        <!-- Upcoming Events Section -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Upcoming Events</h5>
+                <a href="<?= base_url('events') ?>" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div id="upcoming-events-container">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Quick Links</h5>
@@ -94,4 +110,119 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch upcoming events
+    fetch('<?= base_url('events/upcomingEvents') ?>')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('upcoming-events-container');
+            
+            // Clear loading spinner
+            container.innerHTML = '';
+            
+            if (data.events && data.events.length > 0) {
+                // Create list of events
+                const eventsList = document.createElement('ul');
+                eventsList.className = 'list-group list-group-flush';
+                
+                // Add each event to the list
+                data.events.forEach(event => {
+                    // Format date for display
+                    const eventDate = new Date(event.start_date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const eventDay = eventDate.getDate();
+                    const eventMonth = eventDate.toLocaleString('default', { month: 'short' });
+                    
+                    // Calculate days until the event
+                    let daysUntil = '';
+                    const diffTime = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffTime === 0) {
+                        daysUntil = 'Today';
+                    } else if (diffTime === 1) {
+                        daysUntil = 'Tomorrow';
+                    } else {
+                        daysUntil = `In ${diffTime} days`;
+                    }
+                    
+                    // Create event item
+                    const eventItem = document.createElement('li');
+                    eventItem.className = 'list-group-item';
+                    
+                    // Add time info if available
+                    let timeInfo = '';
+                    if (event.start_time) {
+                        const startTime = new Date(`2000-01-01T${event.start_time}`).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        if (event.end_time && event.start_date === event.end_date) {
+                            const endTime = new Date(`2000-01-01T${event.end_time}`).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            timeInfo = `${startTime} - ${endTime}`;
+                        } else {
+                            timeInfo = `at ${startTime}`;
+                        }
+                    }
+                    
+                    // Create event item content
+                    eventItem.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="me-3 text-center">
+                                <div class="bg-primary text-white rounded px-2 py-1">
+                                    <div class="small">${eventMonth}</div>
+                                    <div class="fw-bold">${eventDay}</div>
+                                </div>
+                                <div class="small text-muted mt-1">${daysUntil}</div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <a href="<?= base_url('events/view/') ?>${event.id}" class="text-decoration-none">
+                                        ${event.title}
+                                    </a>
+                                </h6>
+                                <div class="small text-muted mb-1">
+                                    <i class="bi bi-clock me-1"></i> ${timeInfo || 'All day'}
+                                </div>
+                                <div class="small text-muted">
+                                    <i class="bi bi-geo-alt me-1"></i> ${event.location || 'No location specified'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    eventsList.appendChild(eventItem);
+                });
+                
+                container.appendChild(eventsList);
+            } else {
+                // No events found
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-x fs-1 mb-3"></i>
+                        <p>No upcoming events found.</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching upcoming events:', error);
+            
+            const container = document.getElementById('upcoming-events-container');
+            container.innerHTML = `
+                <div class="alert alert-danger m-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Failed to load upcoming events. Please try refreshing the page.
+                </div>
+            `;
+        });
+});
+</script>
 <?= $this->endSection() ?>

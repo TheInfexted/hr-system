@@ -98,6 +98,7 @@ class EventController extends BaseController
                 $builder->orderBy($columnName, $columnSortOrder);
             } else {
                 $builder->orderBy('events.start_date', 'ASC');
+                $builder->orderBy('events.start_time', 'ASC'); // Added time ordering
             }
             
             // Apply pagination
@@ -111,13 +112,33 @@ class EventController extends BaseController
             $no = $start + 1;
             
             foreach ($result as $row) {
-                // Format dates for display
+                // Format dates and times for display
                 $startDate = date('d M Y', strtotime($row->start_date));
                 $endDate = date('d M Y', strtotime($row->end_date));
+                
+                // Initialize date range
                 $dateRange = $startDate;
                 
-                if ($row->start_date != $row->end_date) {
+                // If start and end dates are the same
+                if ($row->start_date == $row->end_date) {
+                    // Check if we have both start and end times
+                    if (!empty($row->start_time) && !empty($row->end_time)) {
+                        $dateRange .= ' (' . date('h:i A', strtotime($row->start_time)) . ' - ' . 
+                                      date('h:i A', strtotime($row->end_time)) . ')';
+                    } 
+                    // Only start time
+                    else if (!empty($row->start_time)) {
+                        $dateRange .= ' at ' . date('h:i A', strtotime($row->start_time));
+                    }
+                }
+                // Different start and end dates
+                else {
                     $dateRange .= ' - ' . $endDate;
+                    
+                    // Add times if available
+                    if (!empty($row->start_time)) {
+                        $dateRange .= ' (starts at ' . date('h:i A', strtotime($row->start_time)) . ')';
+                    }
                 }
                 
                 // Create status badge
@@ -237,10 +258,24 @@ class EventController extends BaseController
             return redirect()->back()->withInput()->with('error', 'End date cannot be earlier than start date');
         }
         
+        // Check times if dates are the same
+        $startTime = $this->request->getPost('start_time');
+        $endTime = $this->request->getPost('end_time');
+        
+        if ($startDate == $endDate && !empty($startTime) && !empty($endTime)) {
+            if (strtotime($startTime) >= strtotime($endTime)) {
+                return redirect()->back()->withInput()->with('error', 'End time must be later than start time on the same day');
+            }
+        }
+        
         // Set company_id based on role
         $companyId = $this->request->getPost('company_id');
         if (session()->get('role_id') != 1) {
-            $companyId = session()->get('company_id');
+            if (session()->get('role_id') == 3) {
+                $companyId = session()->get('active_company_id');
+            } else {
+                $companyId = session()->get('company_id');
+            }
         }
         
         // Prepare data
@@ -248,7 +283,9 @@ class EventController extends BaseController
             'title' => $this->request->getPost('title'),
             'description' => $this->request->getPost('description'),
             'start_date' => $startDate,
+            'start_time' => $startTime,
             'end_date' => $endDate,
+            'end_time' => $endTime,
             'location' => $this->request->getPost('location'),
             'company_id' => $companyId,
             'status' => $this->request->getPost('status'),
@@ -327,8 +364,12 @@ class EventController extends BaseController
         
         // Check company access
         if (session()->get('role_id') != 1) {
-            if ($event['company_id'] != session()->get('company_id')) {
+            if (session()->get('role_id') == 2 && $event['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/events')->with('error', 'Access denied');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $event['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/events')->with('error', 'Access denied');
+                }
             }
         }
         
@@ -371,8 +412,12 @@ class EventController extends BaseController
         
         // Check company access
         if (session()->get('role_id') != 1) {
-            if ($event['company_id'] != session()->get('company_id')) {
+            if (session()->get('role_id') == 2 && $event['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/events')->with('error', 'Access denied');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $event['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/events')->with('error', 'Access denied');
+                }
             }
         }
         
@@ -396,10 +441,24 @@ class EventController extends BaseController
             return redirect()->back()->withInput()->with('error', 'End date cannot be earlier than start date');
         }
         
+        // Check times if dates are the same
+        $startTime = $this->request->getPost('start_time');
+        $endTime = $this->request->getPost('end_time');
+        
+        if ($startDate == $endDate && !empty($startTime) && !empty($endTime)) {
+            if (strtotime($startTime) >= strtotime($endTime)) {
+                return redirect()->back()->withInput()->with('error', 'End time must be later than start time on the same day');
+            }
+        }
+        
         // Set company_id based on role
         $companyId = $this->request->getPost('company_id');
         if (session()->get('role_id') != 1) {
-            $companyId = session()->get('company_id');
+            if (session()->get('role_id') == 3) {
+                $companyId = session()->get('active_company_id');
+            } else {
+                $companyId = session()->get('company_id');
+            }
         }
         
         // Prepare data
@@ -408,7 +467,9 @@ class EventController extends BaseController
             'title' => $this->request->getPost('title'),
             'description' => $this->request->getPost('description'),
             'start_date' => $startDate,
+            'start_time' => $startTime,
             'end_date' => $endDate,
+            'end_time' => $endTime,
             'location' => $this->request->getPost('location'),
             'company_id' => $companyId,
             'status' => $this->request->getPost('status')
@@ -440,8 +501,12 @@ class EventController extends BaseController
         
         // Check company access
         if (session()->get('role_id') != 1) {
-            if ($event['company_id'] != session()->get('company_id')) {
+            if (session()->get('role_id') == 2 && $event['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/events')->with('error', 'Access denied');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $event['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/events')->with('error', 'Access denied');
+                }
             }
         }
         
@@ -484,6 +549,11 @@ class EventController extends BaseController
         
         // Get upcoming events
         $events = $this->eventModel->getUpcomingEvents($companyId, 5);
+        
+        // Format each event with date and time
+        foreach ($events as &$event) {
+            $event = $this->eventModel->formatEventDateTime($event);
+        }
         
         // Return as JSON
         return $this->response->setJSON([

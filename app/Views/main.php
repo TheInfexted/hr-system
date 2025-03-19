@@ -80,6 +80,13 @@ helper('permission');
                         </li>
                         <?php endif; ?>
                         
+                        <!-- New Payslips Menu Item for Employees -->
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos(uri_string(), 'payslips') === 0 ? 'active' : '' ?>" href="<?= base_url('payslips') ?>">
+                                <i class="bi bi-file-earmark-text me-2"></i> My Payslips
+                            </a>
+                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link <?= uri_string() == 'profile' ? 'active' : '' ?>" href="<?= base_url('profile') ?>">
                                 <i class="bi bi-person me-2"></i> My Profile
@@ -104,7 +111,15 @@ helper('permission');
                         </a>
                     </li>
                     <?php endif; ?>
-                    
+
+                    <?php if(has_permission('view_payslips')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= strpos(uri_string(), 'payslips/admin') === 0 ? 'active' : '' ?>" href="<?= base_url('payslips/admin') ?>">
+                            <i class="bi bi-file-earmark-text me-2"></i> Payslips
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                                        
                     <?php if(has_permission('view_attendance')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'attendance') === 0 ? 'active' : '' ?>" href="<?= base_url('attendance') ?>">

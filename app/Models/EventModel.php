@@ -14,6 +14,7 @@ class EventModel extends Model
     
     protected $allowedFields = [
         'title', 'description', 'start_date', 'end_date', 
+        'start_time', 'end_time', // New time fields
         'location', 'company_id', 'created_by', 'status'
     ];
     
@@ -26,6 +27,8 @@ class EventModel extends Model
         'description' => 'required',
         'start_date'  => 'required|valid_date',
         'end_date'    => 'required|valid_date',
+        'start_time'  => 'permit_empty', // Optional time field
+        'end_time'    => 'permit_empty', // Optional time field
         'company_id'  => 'required|numeric'
     ];
     
@@ -59,6 +62,7 @@ class EventModel extends Model
     {
         return $this->where('company_id', $companyId)
                     ->orderBy('start_date', 'ASC')
+                    ->orderBy('start_time', 'ASC') // Added ordering by time
                     ->findAll();
     }
     
@@ -75,8 +79,46 @@ class EventModel extends Model
                     ->where('start_date >=', date('Y-m-d'))
                     ->where('status', 'active')
                     ->orderBy('start_date', 'ASC')
+                    ->orderBy('start_time', 'ASC') // Added ordering by time
                     ->limit($limit)
                     ->findAll();
+    }
+    
+    /**
+     * Format event datetime for display
+     *
+     * @param array $event Event data
+     * @return array Event with formatted datetime info
+     */
+    public function formatEventDateTime($event)
+    {
+        $event['formatted_start'] = date('F d, Y', strtotime($event['start_date']));
+        $event['formatted_end'] = date('F d, Y', strtotime($event['end_date']));
+        
+        // Add time formatting if time fields exist and are not empty
+        if (!empty($event['start_time'])) {
+            $event['formatted_start'] .= ' at ' . date('h:i A', strtotime($event['start_time']));
+        }
+        
+        if (!empty($event['end_time'])) {
+            $event['formatted_end'] .= ' at ' . date('h:i A', strtotime($event['end_time']));
+        }
+        
+        // Create a date range string
+        if ($event['start_date'] == $event['end_date']) {
+            $event['date_range'] = $event['formatted_start'];
+            
+            // If both times exist on same day, format accordingly
+            if (!empty($event['start_time']) && !empty($event['end_time'])) {
+                $event['date_range'] = date('F d, Y', strtotime($event['start_date'])) . 
+                                       ' (' . date('h:i A', strtotime($event['start_time'])) . 
+                                       ' - ' . date('h:i A', strtotime($event['end_time'])) . ')';
+            }
+        } else {
+            $event['date_range'] = $event['formatted_start'] . ' - ' . $event['formatted_end'];
+        }
+        
+        return $event;
     }
     
     /**
@@ -94,9 +136,23 @@ class EventModel extends Model
         
         if ($id !== null) {
             $builder->where('events.id', $id);
-            return $builder->get()->getRowArray();
+            $event = $builder->get()->getRowArray();
+            
+            if ($event) {
+                // Format the datetime
+                return $this->formatEventDateTime($event);
+            }
+            
+            return null;
         }
         
-        return $builder->get()->getResultArray();
+        $events = $builder->get()->getResultArray();
+        
+        // Format datetime for all events
+        foreach ($events as &$event) {
+            $event = $this->formatEventDateTime($event);
+        }
+        
+        return $events;
     }
 }

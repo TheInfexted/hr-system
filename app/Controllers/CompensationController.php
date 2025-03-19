@@ -3,18 +3,21 @@
 use App\Models\EmployeeModel;
 use App\Models\CompensationModel;
 use App\Models\CompanyModel;
+use App\Models\PayslipModel;
 
 class CompensationController extends BaseController
 {
     protected $employeeModel;
     protected $compensationModel;
     protected $companyModel;
+    protected $payslipModel;
     
     public function __construct()
     {
         $this->employeeModel = new EmployeeModel();
         $this->compensationModel = new CompensationModel();
         $this->companyModel = new CompanyModel();
+        $this->payslipModel = new PayslipModel();
     }
     
     public function index()
@@ -387,8 +390,8 @@ class CompensationController extends BaseController
         $employee = $this->employeeModel->find($employeeId);
         $company = $this->companyModel->find($employee['company_id']);
         $compensation = $this->compensationModel->where('employee_id', $employeeId)
-                                       ->orderBy('effective_date', 'DESC')
-                                       ->first();
+                                           ->orderBy('effective_date', 'DESC')
+                                           ->first();
         
         $month = $this->request->getVar('month');
         $year = $this->request->getVar('year');
@@ -409,14 +412,22 @@ class CompensationController extends BaseController
         $totalDeductions = $epfEmployee + $socsoEmployee + $eisEmployee + $pcb;
         $netPay = $totalEarnings - $totalDeductions;
         
-        $data = [
-            'title' => 'Payslip',
-            'employee' => $employee,
-            'company' => $company,
+        // Check if a payslip already exists for this employee and month/year
+        $payslipModel = new \App\Models\PayslipModel();
+        $existingPayslip = $payslipModel->where('employee_id', $employeeId)
+                                        ->where('month', $month)
+                                        ->where('year', $year)
+                                        ->first();
+        
+        if ($existingPayslip) {
+            return redirect()->to('/employees/view/' . $employeeId)->with('error', 'A payslip for this period already exists.');
+        }
+        
+        // Save data to payslips table
+        $payslipData = [
+            'employee_id' => $employeeId,
             'month' => $month,
             'year' => $year,
-            'working_days' => $workingDays,
-            'pay_date' => $payDate,
             'basic_pay' => $basicPay,
             'allowance' => $allowance,
             'overtime' => $overtime,
@@ -426,107 +437,68 @@ class CompensationController extends BaseController
             'pcb' => $pcb,
             'total_earnings' => $totalEarnings,
             'total_deductions' => $totalDeductions,
-            'net_pay' => $netPay
+            'net_pay' => $netPay,
+            'pay_date' => $payDate,
+            'working_days' => $workingDays,
+            'generated_by' => session()->get('user_id'),
+            'status' => 'generated'
         ];
         
-        return view('compensation/payslip', $data);
-    }
-    
-    // Helper function to convert numbers to words
-    private function numberToWords($number) {
-        $ones = [
-            0 => "Zero", 1 => "One", 2 => "Two", 3 => "Three", 4 => "Four", 
-            5 => "Five", 6 => "Six", 7 => "Seven", 8 => "Eight", 9 => "Nine"
-        ];
-        $teens = [
-            11 => "Eleven", 12 => "Twelve", 13 => "Thirteen", 14 => "Fourteen", 
-            15 => "Fifteen", 16 => "Sixteen", 17 => "Seventeen", 18 => "Eighteen", 19 => "Nineteen"
-        ];
-        $tens = [
-            1 => "Ten", 2 => "Twenty", 3 => "Thirty", 4 => "Forty", 
-            5 => "Fifty", 6 => "Sixty", 7 => "Seventy", 8 => "Eighty", 9 => "Ninety"
-        ];
+        $payslipId = $payslipModel->insert($payslipData);
         
-        $number = number_format($number, 2, '.', '');
-        $numberArray = explode('.', $number);
-        $wholeNumber = $numberArray[0];
-        
-        if ($wholeNumber == 0) {
-            return "Zero";
+        if (!$payslipId) {
+            return redirect()->to('/employees/view/' . $employeeId)->with('error', 'Failed to generate payslip. Please try again.');
         }
         
-        $result = "";
-        
-        // Process thousands
-        if ($wholeNumber >= 1000) {
-            $thousands = (int)($wholeNumber / 1000);
-            $result .= $this->convertLessThanOneThousand($thousands) . " Thousand ";
-            $wholeNumber %= 1000;
-        }
-        
-        // Process hundreds
-        if ($wholeNumber >= 100) {
-            $hundreds = (int)($wholeNumber / 100);
-            $result .= $ones[$hundreds] . " Hundred ";
-            $wholeNumber %= 100;
-        }
-        
-        // Process tens and ones
-        if ($wholeNumber > 0) {
-            if ($wholeNumber < 10) {
-                $result .= $ones[$wholeNumber];
-            } else if ($wholeNumber < 20) {
-                $result .= $teens[$wholeNumber] ?? $tens[1] . " " . $ones[$wholeNumber - 10];
-            } else {
-                $tensValue = (int)($wholeNumber / 10);
-                $onesValue = $wholeNumber % 10;
-                $result .= $tens[$tensValue];
-                if ($onesValue > 0) {
-                    $result .= " " . $ones[$onesValue];
-                }
-            }
-        }
-        
-        return trim($result);
+        // Redirect to the view payslip page
+        return redirect()->to('/payslips/admin/view/' . $payslipId)->with('success', 'Payslip generated successfully.');
     }
 
-    private function convertLessThanOneThousand($number) {
-        $ones = [
-            0 => "Zero", 1 => "One", 2 => "Two", 3 => "Three", 4 => "Four", 
-            5 => "Five", 6 => "Six", 7 => "Seven", 8 => "Eight", 9 => "Nine"
-        ];
-        $teens = [
-            11 => "Eleven", 12 => "Twelve", 13 => "Thirteen", 14 => "Fourteen", 
-            15 => "Fifteen", 16 => "Sixteen", 17 => "Seventeen", 18 => "Eighteen", 19 => "Nineteen"
-        ];
-        $tens = [
-            1 => "Ten", 2 => "Twenty", 3 => "Thirty", 4 => "Forty", 
-            5 => "Fifty", 6 => "Sixty", 7 => "Seventy", 8 => "Eighty", 9 => "Ninety"
-        ];
+    public function updateStatus($payslipId, $status)
+    {
+        helper('permission');
         
-        $result = "";
-        
-        if ($number >= 100) {
-            $hundreds = (int)($number / 100);
-            $result .= $ones[$hundreds] . " Hundred ";
-            $number %= 100;
+        // Check permissions
+        if (!has_permission('edit_payslips')) {
+            return redirect()->to('/payslips/admin')->with('error', 'Access denied. You do not have permission to update payslip status.');
         }
         
-        if ($number > 0) {
-            if ($number < 10) {
-                $result .= $ones[$number];
-            } else if ($number < 20) {
-                $result .= $teens[$number] ?? $tens[1] . " " . $ones[$number - 10];
-            } else {
-                $tensValue = (int)($number / 10);
-                $onesValue = $number % 10;
-                $result .= $tens[$tensValue];
-                if ($onesValue > 0) {
-                    $result .= " " . $ones[$onesValue];
+        // Validate status
+        if (!in_array($status, ['generated', 'paid', 'cancelled'])) {
+            return redirect()->to('/payslips/admin')->with('error', 'Invalid status.');
+        }
+        
+        // Get the payslip
+        $payslip = $this->payslipModel->find($payslipId);
+        
+        if (empty($payslip)) {
+            return redirect()->to('/payslips/admin')->with('error', 'Payslip not found.');
+        }
+        
+        // Get the employee
+        $employee = $this->employeeModel->find($payslip['employee_id']);
+        
+        if (empty($employee)) {
+            return redirect()->to('/payslips/admin')->with('error', 'Employee not found.');
+        }
+        
+        // Security check based on role
+        if (session()->get('role_id') != 1) {
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
                 }
             }
         }
         
-        return trim($result);
+        // Update the status
+        $this->payslipModel->update($payslipId, [
+            'status' => $status,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+        
+        return redirect()->to('/payslips/admin/view/' . $payslipId)->with('success', 'Payslip status updated to ' . ucfirst($status) . '.');
     }
 }

@@ -63,6 +63,25 @@
                                     <?php endif; ?>
                                 </div>
                             </li>
+                            
+                            <li class="list-group-item">
+                                <strong><i class="bi bi-clock me-2"></i> Time:</strong>
+                                <div class="mt-1">
+                                    <?php if(!empty($event['start_time'])): ?>
+                                        <?php if($event['start_date'] == $event['end_date'] && !empty($event['end_time'])): ?>
+                                            <?= date('h:i A', strtotime($event['start_time'])) ?> - <?= date('h:i A', strtotime($event['end_time'])) ?>
+                                        <?php else: ?>
+                                            Starts: <?= date('h:i A', strtotime($event['start_time'])) ?>
+                                            <?php if(!empty($event['end_time'])): ?>
+                                                <br>Ends: <?= date('h:i A', strtotime($event['end_time'])) ?>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        All day
+                                    <?php endif; ?>
+                                </div>
+                            </li>
+                            
                             <li class="list-group-item">
                                 <strong><i class="bi bi-geo-alt me-2"></i> Location:</strong>
                                 <div class="mt-1"><?= $event['location'] ?></div>
@@ -76,7 +95,7 @@
                                 <div class="mt-1"><?= $event['created_by_name'] ?></div>
                             </li>
                             <li class="list-group-item">
-                                <strong><i class="bi bi-clock me-2"></i> Created At:</strong>
+                                <strong><i class="bi bi-clock-history me-2"></i> Created At:</strong>
                                 <div class="mt-1"><?= date('F d, Y h:i A', strtotime($event['created_at'])) ?></div>
                             </li>
                         </ul>
@@ -84,7 +103,7 @@
                 </div>
                 
                 <!-- Countdown for upcoming events -->
-                <?php if ($event['status'] == 'active' && strtotime($event['start_date']) > time()): ?>
+                <?php if ($event['status'] == 'active' && strtotime($event['start_date'] . ' ' . ($event['start_time'] ?? '00:00:00')) > time()): ?>
                 <div class="card bg-light">
                     <div class="card-body">
                         <h5 class="card-title">Countdown</h5>
@@ -119,16 +138,24 @@
                     </div>
                 </div>
                 <?php endif; ?>
+                
+                <!-- Add to calendar button -->
+                <div class="mt-3">
+                    <button class="btn btn-primary w-100" id="add-to-calendar-btn">
+                        <i class="bi bi-calendar-plus me-2"></i> Add to Calendar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<?php if ($event['status'] == 'active' && strtotime($event['start_date']) > time()): ?>
+<?php if ($event['status'] == 'active' && strtotime($event['start_date'] . ' ' . ($event['start_time'] ?? '00:00:00')) > time()): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Countdown timer
-    const countDownDate = new Date("<?= $event['start_date'] ?>").getTime();
+    const eventDate = new Date("<?= $event['start_date'] ?> <?= $event['start_time'] ?? '00:00:00' ?>");
+    const countDownDate = eventDate.getTime();
     
     // Update the countdown every 1 second
     const countdownTimer = setInterval(function() {
@@ -156,6 +183,25 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("countdown").innerHTML = "<div class='alert alert-info mb-0'>This event has started!</div>";
         }
     }, 1000);
+    
+    // Add to calendar functionality
+    const addToCalendarBtn = document.getElementById('add-to-calendar-btn');
+    if (addToCalendarBtn) {
+        addToCalendarBtn.addEventListener('click', function() {
+            // Create event details for calendar
+            const title = "<?= addslashes($event['title']) ?>";
+            const description = "<?= addslashes(strip_tags($event['description'])) ?>";
+            const location = "<?= addslashes($event['location']) ?>";
+            const startDate = "<?= $event['start_date'] ?><?= !empty($event['start_time']) ? 'T' . $event['start_time'] : '' ?>";
+            const endDate = "<?= $event['end_date'] ?><?= !empty($event['end_time']) ? 'T' . $event['end_time'] : '' ?>";
+            
+            // Google Calendar link
+            const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/[-:]/g, '')}/${endDate.replace(/[-:]/g, '')}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
+            
+            // Open in new tab
+            window.open(googleCalendarUrl, '_blank');
+        });
+    }
 });
 </script>
 <?php endif; ?>

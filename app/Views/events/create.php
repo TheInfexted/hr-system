@@ -35,7 +35,7 @@
             </div>
             
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label for="start_date" class="form-label">Start Date</label>
                     <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('start_date')) ? 'is-invalid' : '' ?>" 
                            id="start_date" name="start_date" value="<?= old('start_date', date('Y-m-d')) ?>">
@@ -43,12 +43,28 @@
                         <div class="invalid-feedback"><?= $validation->getError('start_date') ?></div>
                     <?php endif; ?>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
+                    <label for="start_time" class="form-label">Start Time</label>
+                    <input type="time" class="form-control <?= (isset($validation) && $validation->hasError('start_time')) ? 'is-invalid' : '' ?>" 
+                           id="start_time" name="start_time" value="<?= old('start_time') ?>">
+                    <?php if(isset($validation) && $validation->hasError('start_time')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('start_time') ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="col-md-3">
                     <label for="end_date" class="form-label">End Date</label>
                     <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('end_date')) ? 'is-invalid' : '' ?>" 
                            id="end_date" name="end_date" value="<?= old('end_date', date('Y-m-d')) ?>">
                     <?php if(isset($validation) && $validation->hasError('end_date')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('end_date') ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="col-md-3">
+                    <label for="end_time" class="form-label">End Time</label>
+                    <input type="time" class="form-control <?= (isset($validation) && $validation->hasError('end_time')) ? 'is-invalid' : '' ?>" 
+                           id="end_time" name="end_time" value="<?= old('end_time') ?>">
+                    <?php if(isset($validation) && $validation->hasError('end_time')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('end_time') ?></div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -105,10 +121,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Validate dates
+    // Validate dates and times
     const form = document.querySelector('form');
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
     
     form.addEventListener('submit', function(event) {
         const startDate = new Date(startDateInput.value);
@@ -117,6 +135,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (endDate < startDate) {
             event.preventDefault();
             alert('End date cannot be earlier than start date');
+            return;
+        }
+        
+        // If dates are the same, check times
+        if (startDate.getTime() === endDate.getTime() && 
+            startTimeInput.value && endTimeInput.value) {
+            
+            const startDateTime = new Date(startDate.getTime());
+            const endDateTime = new Date(endDate.getTime());
+            
+            const [startHours, startMinutes] = startTimeInput.value.split(':').map(Number);
+            const [endHours, endMinutes] = endTimeInput.value.split(':').map(Number);
+            
+            startDateTime.setHours(startHours, startMinutes, 0);
+            endDateTime.setHours(endHours, endMinutes, 0);
+            
+            if (endDateTime < startDateTime) {
+                event.preventDefault();
+                alert('End time cannot be earlier than start time on the same day');
+            }
         }
     });
 });
