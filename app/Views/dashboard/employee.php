@@ -123,12 +123,19 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '';
             
             if (data.events && data.events.length > 0) {
+                // Sort events by proximity to current date (closest events first)
+                const sortedEvents = [...data.events].sort((a, b) => {
+                    const dateA = new Date(a.start_date);
+                    const dateB = new Date(b.start_date);
+                    return dateA - dateB;
+                });
+                
                 // Create list of events
                 const eventsList = document.createElement('ul');
                 eventsList.className = 'list-group list-group-flush';
                 
                 // Add each event to the list
-                data.events.forEach(event => {
+                sortedEvents.forEach(event => {
                     // Format date for display
                     const eventDate = new Date(event.start_date);
                     const today = new Date();
@@ -139,19 +146,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Calculate days until the event
                     let daysUntil = '';
-                    const diffTime = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
                     
-                    if (diffTime === 0) {
+                    // Compare year, month, and day to properly identify "today"
+                    const isSameDay = eventDate.getFullYear() === today.getFullYear() && 
+                                     eventDate.getMonth() === today.getMonth() && 
+                                     eventDate.getDate() === today.getDate();
+                    
+                    // Compare for tomorrow
+                    const tomorrowDate = new Date(today);
+                    tomorrowDate.setDate(today.getDate() + 1);
+                    const isTomorrow = eventDate.getFullYear() === tomorrowDate.getFullYear() && 
+                                      eventDate.getMonth() === tomorrowDate.getMonth() && 
+                                      eventDate.getDate() === tomorrowDate.getDate();
+                    
+                    if (isSameDay) {
                         daysUntil = 'Today';
-                    } else if (diffTime === 1) {
+                    } else if (isTomorrow) {
                         daysUntil = 'Tomorrow';
-                    } else {
+                    } else if (eventDate > today) {
+                        // Calculate the difference in days
+                        const diffTime = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
                         daysUntil = `In ${diffTime} days`;
+                    } else {
+                        daysUntil = 'Ongoing';
                     }
                     
-                    // Create event item
-                    const eventItem = document.createElement('li');
-                    eventItem.className = 'list-group-item';
+                    // Choose badge color based on how soon the event is
+                    let badgeClass = 'bg-primary';
+                    if (daysUntil === 'Today') {
+                        badgeClass = 'bg-danger';
+                    } else if (daysUntil === 'Tomorrow') {
+                        badgeClass = 'bg-warning';
+                    } else if (daysUntil.includes('In 2 days') || daysUntil.includes('In 3 days')) {
+                        badgeClass = 'bg-info';
+                    }
                     
                     // Add time info if available
                     let timeInfo = '';
@@ -172,11 +200,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                     
+                    // Create event item
+                    const eventItem = document.createElement('li');
+                    eventItem.className = 'list-group-item';
+                    
                     // Create event item content
                     eventItem.innerHTML = `
                         <div class="d-flex w-100 justify-content-between align-items-start">
                             <div class="me-3 text-center">
-                                <div class="bg-primary text-white rounded px-2 py-1">
+                                <div class="${badgeClass} text-white rounded px-2 py-1">
                                     <div class="small">${eventMonth}</div>
                                     <div class="fw-bold">${eventDay}</div>
                                 </div>

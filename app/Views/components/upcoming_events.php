@@ -29,7 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const eventsList = document.createElement('ul');
                 eventsList.className = 'list-group list-group-flush';
                 
-                data.events.forEach(event => {
+                // Sort events by proximity to current date (closest events first)
+                const sortedEvents = [...data.events].sort((a, b) => {
+                    const dateA = new Date(a.start_date);
+                    const dateB = new Date(b.start_date);
+                    return dateA - dateB;
+                });
+                
+                sortedEvents.forEach(event => {
                     const eventItem = document.createElement('li');
                     eventItem.className = 'list-group-item px-0';
                     
@@ -38,24 +45,61 @@ document.addEventListener('DOMContentLoaded', function() {
                         month: 'short', day: 'numeric', year: 'numeric' 
                     });
                     
+                    // Display time if available
+                    let timeInfo = '';
+                    if (event.start_time) {
+                        const startTime = new Date(`2000-01-01T${event.start_time}`).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        if (event.end_time && event.start_date === event.end_date) {
+                            const endTime = new Date(`2000-01-01T${event.end_time}`).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            timeInfo = `${startTime} - ${endTime}`;
+                        } else {
+                            timeInfo = `at ${startTime}`;
+                        }
+                    }
+                    
+                    // Get days until the event
+                    const daysInfo = getDaysUntil(event.start_date);
+                    
+                    // Choose badge color based on how soon the event is
+                    let badgeClass = 'bg-primary';
+                    if (daysInfo === 'Today') {
+                        badgeClass = 'bg-danger';
+                    } else if (daysInfo === 'Tomorrow') {
+                        badgeClass = 'bg-warning';
+                    } else if (daysInfo.includes('In 2 days') || daysInfo.includes('In 3 days')) {
+                        badgeClass = 'bg-info';
+                    }
+                    
+                    // Create event item with more visual appeal
                     eventItem.innerHTML = `
                         <div class="d-flex justify-content-between align-items-start">
-                            <div>
+                            <div class="me-3 text-center">
+                                <div class="${badgeClass} text-white rounded px-2 py-1">
+                                    <div class="small">${eventDate.toLocaleDateString('en-US', { month: 'short' })}</div>
+                                    <div class="fw-bold">${eventDate.getDate()}</div>
+                                </div>
+                                <div class="small text-muted mt-1">${daysInfo}</div>
+                            </div>
+                            <div class="flex-grow-1">
                                 <h6 class="mb-1">
                                     <a href="<?= base_url('events/view/') ?>${event.id}" class="text-decoration-none">
                                         ${event.title}
                                     </a>
                                 </h6>
-                                <div class="small text-muted">
-                                    <i class="bi bi-calendar3 me-1"></i> ${formattedDate}
+                                <div class="small text-muted mb-1">
+                                    <i class="bi bi-clock me-1"></i> ${timeInfo || 'All day'}
                                 </div>
                                 <div class="small text-muted">
                                     <i class="bi bi-geo-alt me-1"></i> ${event.location || 'No location specified'}
                                 </div>
                             </div>
-                            <span class="badge bg-primary rounded-pill">
-                                ${getDaysUntil(event.start_date)}
-                            </span>
                         </div>
                     `;
                     
@@ -105,16 +149,29 @@ document.addEventListener('DOMContentLoaded', function() {
         eventDate.setHours(0, 0, 0, 0);
         currentDate.setHours(0, 0, 0, 0);
         
-        // Calculate difference in days
-        const diffTime = eventDate - currentDate;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // Compare year, month, and day to properly identify "today"
+        const isSameDay = eventDate.getFullYear() === currentDate.getFullYear() && 
+                          eventDate.getMonth() === currentDate.getMonth() && 
+                          eventDate.getDate() === currentDate.getDate();
+                    
+        // Compare for tomorrow
+        const tomorrowDate = new Date(currentDate);
+        tomorrowDate.setDate(currentDate.getDate() + 1);
+        const isTomorrow = eventDate.getFullYear() === tomorrowDate.getFullYear() && 
+                          eventDate.getMonth() === tomorrowDate.getMonth() && 
+                          eventDate.getDate() === tomorrowDate.getDate();
         
-        if (diffDays === 0) {
+        if (isSameDay) {
             return 'Today';
-        } else if (diffDays === 1) {
+        } else if (isTomorrow) {
             return 'Tomorrow';
+        } else if (eventDate > currentDate) {
+            // Calculate the difference in days
+            const diffTime = Math.ceil((eventDate - currentDate) / (1000 * 60 * 60 * 24));
+            return `In ${diffTime} days`;
         } else {
-            return `In ${diffDays} days`;
+            // For ongoing events that started in the past
+            return 'Ongoing';
         }
     }
 });

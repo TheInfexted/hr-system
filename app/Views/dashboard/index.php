@@ -59,22 +59,20 @@
     </div>
 
     <?php if(session()->get('role_id') == 2): ?>
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title">Sub-Account Management</h5>
-                            <p class="card-text">
-                                Grant access to your company data for sub-accounts. This allows them to view and manage your employees, 
-                                attendance records, and compensation data based on their permissions.
-                            </p>
-                        </div>
-                        <a href="<?= base_url('acknowledgments') ?>" class="btn btn-primary">
-                            <i class="bi bi-key me-2"></i> Manage Sub-Account Access
-                        </a>
+    <div class="col-md-12 mb-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Sub-Account Management</h5>
+                        <p class="card-text">
+                            Grant access to your company data for sub-accounts. This allows them to view and manage your employees, 
+                            attendance records, and compensation data based on their permissions.
+                        </p>
                     </div>
+                    <a href="<?= base_url('acknowledgments') ?>" class="btn btn-primary">
+                        <i class="bi bi-key me-2"></i> Manage Sub-Account Access
+                    </a>
                 </div>
             </div>
         </div>
@@ -83,7 +81,8 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6 mb-4">
+    <!-- Recent Attendance Section -->
+    <div class="col-md-4 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Recent Attendance</h5>
@@ -139,7 +138,14 @@
         </div>
     </div>
     
-    <div class="col-md-6 mb-4">
+    <!-- Upcoming Events Section -->
+    <div class="col-md-4 mb-4">
+        <!-- Include the upcoming events component as a standalone card -->
+        <?php include_once(APPPATH . 'Views/components/upcoming_events.php'); ?>
+    </div>
+    
+    <!-- Quick Actions Section -->
+    <div class="col-md-4 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Quick Actions</h5>
@@ -160,14 +166,9 @@
                         <i class="bi bi-file-earmark-text me-2"></i> Generate Attendance Report
                     </a>
                     
-                    <?php if (session()->get('role_id') === '1' || session()->get('role_id') === '2'): ?>
-                    <a href="<?= base_url('users/create') ?>" class="btn btn-outline-secondary">
-                        <i class="bi bi-person-badge me-2"></i> Create New User
+                    <a href="<?= base_url('events') ?>" class="btn btn-outline-primary">
+                        <i class="bi bi-calendar-event me-2"></i> View All Events
                     </a>
-                    <?php endif; ?>
-                    <?php 
-                    include_once(APPPATH . 'Views/components/upcoming_events.php');
-                    ?>
                 </div>
             </div>
         </div>

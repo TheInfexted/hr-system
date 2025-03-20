@@ -75,11 +75,20 @@ class EventModel extends Model
      */
     public function getUpcomingEvents($companyId, $limit = 5)
     {
+        $currentDate = date('Y-m-d');
+        
+        // We want events that:
+        // 1. Either start today or in the future (start_date >= today)
+        // 2. Or haven't ended yet (end_date >= today) 
+        // 3. And are active (not cancelled or completed)
         return $this->where('company_id', $companyId)
-                    ->where('start_date >=', date('Y-m-d'))
+                    ->groupStart()
+                        ->where('start_date >=', $currentDate)
+                        ->orWhere('end_date >=', $currentDate)
+                    ->groupEnd()
                     ->where('status', 'active')
                     ->orderBy('start_date', 'ASC')
-                    ->orderBy('start_time', 'ASC') // Added ordering by time
+                    ->orderBy('start_time', 'ASC')
                     ->limit($limit)
                     ->findAll();
     }

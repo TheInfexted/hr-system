@@ -35,7 +35,6 @@
                 <h3>Payslip For <?= (new \App\Models\PayslipModel())->getMonthName($payslip['month']) ?> <?= $payslip['year'] ?></h3>
                 <h4><?= strtoupper($company['name']) ?></h4>
                 <p class="small"><?= $company['ssm_number'] ? '(' . $company['ssm_number'] . ')' : '' ?></p>
-                <p class="small">Status: <span class="badge bg-<?= $payslip['status'] == 'paid' ? 'success' : ($payslip['status'] == 'cancelled' ? 'danger' : 'info') ?>"><?= ucfirst($payslip['status']) ?></span></p>
             </div>
             
             <!-- Employee Info -->
