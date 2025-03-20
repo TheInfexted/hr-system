@@ -2,88 +2,65 @@
 
 <?= $this->section('content') ?>
 <?php if(session()->getFlashdata('user_created')): ?>
-    <div class="alert alert-info">
-        <h5>User Account Created</h5>
-        <p>A new user account has been created for this employee:</p>
-        <ul>
-            <li><strong>Username:</strong> <?= session()->getFlashdata('user_created')['username'] ?></li>
-            <li><strong>Password:</strong> <?= session()->getFlashdata('user_created')['password'] ?></li>
-        </ul>
-        <p>Please make sure to share these credentials with the employee.</p>
+    <div class="alert alert-info alert-dismissible fade show rounded-3 shadow-sm border-start border-info border-4">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="bi bi-info-circle-fill display-6 text-info"></i>
+            </div>
+            <div>
+                <h5><i class="bi bi-person-plus me-2"></i>User Account Created</h5>
+                <p>A new user account has been created for this employee:</p>
+                <ul class="mb-1">
+                    <li><strong>Username:</strong> <?= session()->getFlashdata('user_created')['username'] ?></li>
+                    <li><strong>Password:</strong> <?= session()->getFlashdata('user_created')['password'] ?></li>
+                </ul>
+                <p class="mb-0"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Please make sure to share these credentials with the employee.</p>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <?php endif; ?>
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Employee Management</h4>
+        <?php if(has_permission('create_employees')): ?>
         <a href="<?= base_url('employees/create') ?>" class="btn btn-primary">
             <i class="bi bi-person-plus me-2"></i> Add New Employee
         </a>
+        <?php endif; ?>
     </div>
     <div class="card-body">
         <?php if(session()->getFlashdata('success')): ?>
-            <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+            <div class="alert alert-success alert-dismissible fade show rounded-3">
+                <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         <?php endif; ?>
         
         <?php if(session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+            <div class="alert alert-danger alert-dismissible fade show rounded-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         <?php endif; ?>
         
         <div class="table-responsive">
-            <table id="employees-table" class="table table-hover" width="100%">
-                <thead>
+            <table id="employees-table" class="table table-hover align-middle" width="100%">
+                <thead class="table-light">
                     <tr>
-                        <th>#</th>
-                        <th>User ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Company</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th width="5%">#</th>
+                        <th width="5%">ID</th>
+                        <th width="20%">Name</th>
+                        <th width="20%">Email</th>
+                        <th width="15%">Phone</th>
+                        <th width="15%">Company</th>
+                        <th width="10%">Status</th>
+                        <th width="10%">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if(empty($employees)): ?>
-                        <tr>
-                            <td colspan="7" class="text-center">No employees found</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php $no = 1; ?>
-                        <?php foreach($employees as $employee): ?>
-                        <tr>
-                            <td><?= $no++ ?></td>
-                            <td><?= $employee->first_name . ' ' . $employee->last_name ?></td>
-                            <td><?= $employee->email ?></td>
-                            <td><?= $employee->phone ?></td>
-                            <td>
-                                <?php
-                                    $badgeClass = 'secondary';
-                                    
-                                    switch($employee->status) {
-                                        case 'Active':
-                                            $badgeClass = 'success';
-                                            break;
-                                        case 'On Leave':
-                                            $badgeClass = 'warning';
-                                            break;
-                                        case 'Terminated':
-                                            $badgeClass = 'danger';
-                                            break;
-                                    }
-                                ?>
-                                <span class="badge bg-<?= $badgeClass ?>"><?= $employee->status ?></span>
-                            </td>
-                            <td><?= $employee->company ?? '-' ?></td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="<?= base_url('employees/view/'.$employee->id) ?>" class="btn btn-sm btn-info">View</a>
-                                    <a href="<?= base_url('employees/edit/'.$employee->id) ?>" class="btn btn-sm btn-primary">Edit</a>
-                                    <a href="<?= base_url('employees/delete/'.$employee->id) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <!-- Table content will be loaded by DataTables AJAX -->
                 </tbody>
             </table>
         </div>
@@ -94,44 +71,77 @@
 <?= $this->section('scripts') ?>
 <script>
 $(document).ready(function() {
-    $('#employees-table').DataTable({
+    const table = $('#employees-table').DataTable({
         processing: true,
         serverSide: true,
+        responsive: true,
         ajax: {
             url: '<?= base_url('employees/getEmployees') ?>',
             type: 'GET'
         },
         columns: [
-            { data: 'no' },
-            { data: 'user_id' },
-            { data: 'name' },
+            { 
+                data: 'no',
+                className: 'text-center' 
+            },
+            { 
+                data: 'user_id',
+                className: 'text-center'
+            },
+            { 
+                data: 'name',
+                render: function(data, type, row) {
+                    return '<div class="fw-medium">' + data + '</div>';
+                }
+            },
             { data: 'email' },
             { data: 'phone' },
-            { data: 'company' },
-            { data: 'status', orderable: false },
-            { data: 'action', orderable: false, searchable: false }
-        ],
-        paging: true,
-        searching: true,
-        ordering: true,
-        info: true,
-        responsive: true,
-        language: {
-            processing: "Loading...",
-            lengthMenu: "Show _MENU_ entries",
-            zeroRecords: "No matching records found",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)",
-            search: "Search:",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
+            { 
+                data: 'company',
+                render: function(data, type, row) {
+                    return data === 'N/A' ? 
+                        '<span class="badge bg-light text-dark">No Company</span>' : 
+                        '<span class="badge bg-light text-primary border border-primary">' + data + '</span>';
+                }
+            },
+            { 
+                data: 'status',
+                className: 'text-center',
+                orderable: false 
+            },
+            { 
+                data: 'action',
+                className: 'text-center',
+                orderable: false, 
+                searchable: false 
             }
+        ],
+        order: [[0, 'asc']],
+        language: {
+            processing: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>',
+            lengthMenu: "Show _MENU_ entries",
+            zeroRecords: "No matching employees found",
+            info: "Showing _START_ to _END_ of _TOTAL_ employees",
+            infoEmpty: "Showing 0 to 0 of 0 employees",
+            infoFiltered: "(filtered from _MAX_ total employees)",
+            search: "<i class='bi bi-search'></i> Search:",
+            paginate: {
+                first: "<i class='bi bi-chevron-double-left'></i>",
+                last: "<i class='bi bi-chevron-double-right'></i>",
+                next: "<i class='bi bi-chevron-right'></i>",
+                previous: "<i class='bi bi-chevron-left'></i>"
+            }
+        },
+        drawCallback: function() {
+            // Initialize tooltips for action buttons
+            $('[data-bs-toggle="tooltip"]').tooltip();
         }
     });
+    
+    // Refresh table every 60 seconds
+    setInterval(function() {
+        table.ajax.reload(null, false); // false parameter keeps current pagination
+    }, 60000);
 });
 </script>
 <?= $this->endSection() ?>

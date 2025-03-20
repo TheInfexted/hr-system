@@ -2,27 +2,36 @@
 
 <?= $this->section('content') ?>
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Add New Employee</h4>
+        <a href="<?= base_url('employees') ?>" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i> Back to Employees
+        </a>
     </div>
     <div class="card-body">
         <?php if(session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+            <div class="alert alert-danger alert-dismissible fade show rounded-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         <?php endif; ?>
         
         <form action="<?= base_url('employees/create') ?>" method="post" enctype="multipart/form-data">
             <?= csrf_field() ?>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-person-lines-fill me-2"></i>Personal Information</h5>
+                </div>
                 <div class="col-md-6">
-                    <label for="first_name" class="form-label">First Name</label>
+                    <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('first_name')) ? 'is-invalid' : '' ?>" id="first_name" name="first_name" value="<?= old('first_name') ?>">
                     <?php if(isset($validation) && $validation->hasError('first_name')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('first_name') ?></div>
                     <?php endif; ?>
                 </div>
                 <div class="col-md-6">
-                    <label for="last_name" class="form-label">Last Name</label>
+                    <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('last_name')) ? 'is-invalid' : '' ?>" id="last_name" name="last_name" value="<?= old('last_name') ?>">
                     <?php if(isset($validation) && $validation->hasError('last_name')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('last_name') ?></div>
@@ -31,7 +40,10 @@
             </div>
             
             <!-- ID Type and ID Number fields -->
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-card-heading me-2"></i>Identification</h5>
+                </div>
                 <div class="col-md-6">
                     <label for="id_type" class="form-label">ID Type</label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('id_type')) ? 'is-invalid' : '' ?>" id="id_type" name="id_type">
@@ -54,40 +66,55 @@
             </div>
             
             <!-- ID Document Upload Section -->
-            <div class="row mb-3" id="passport_upload_section" style="display: none;">
+            <div class="row g-3 mb-4" id="passport_upload_section" style="display: none;">
                 <div class="col-md-12">
-                    <label for="passport_file" class="form-label">Passport Scan</label>
-                    <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('passport_file')) ? 'is-invalid' : '' ?>" id="passport_file" name="passport_file">
-                    <small class="text-muted">Upload a clear scan or photo of the passport (JPG, PNG or PDF, max 2MB)</small>
-                    <?php if(isset($validation) && $validation->hasError('passport_file')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('passport_file') ?></div>
-                    <?php endif; ?>
+                    <div class="card border bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="bi bi-passport me-2"></i>Passport Scan</h6>
+                            <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('passport_file')) ? 'is-invalid' : '' ?>" id="passport_file" name="passport_file">
+                            <small class="text-muted">Upload a clear scan or photo of the passport (JPG, PNG or PDF, max 2MB)</small>
+                            <?php if(isset($validation) && $validation->hasError('passport_file')): ?>
+                                <div class="invalid-feedback"><?= $validation->getError('passport_file') ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="row mb-3" id="nric_upload_section" style="display: none;">
+            <div class="row g-3 mb-4" id="nric_upload_section" style="display: none;">
                 <div class="col-md-6">
-                    <label for="nric_front" class="form-label">NRIC Front</label>
-                    <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('nric_front')) ? 'is-invalid' : '' ?>" id="nric_front" name="nric_front">
-                    <small class="text-muted">Front side of NRIC (JPG, PNG or PDF, max 2MB)</small>
-                    <?php if(isset($validation) && $validation->hasError('nric_front')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('nric_front') ?></div>
-                    <?php endif; ?>
+                    <div class="card border bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="bi bi-card-image me-2"></i>NRIC Front</h6>
+                            <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('nric_front')) ? 'is-invalid' : '' ?>" id="nric_front" name="nric_front">
+                            <small class="text-muted">Front side of NRIC (JPG, PNG or PDF, max 2MB)</small>
+                            <?php if(isset($validation) && $validation->hasError('nric_front')): ?>
+                                <div class="invalid-feedback"><?= $validation->getError('nric_front') ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <label for="nric_back" class="form-label">NRIC Back</label>
-                    <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('nric_back')) ? 'is-invalid' : '' ?>" id="nric_back" name="nric_back">
-                    <small class="text-muted">Back side of NRIC (JPG, PNG or PDF, max 2MB)</small>
-                    <?php if(isset($validation) && $validation->hasError('nric_back')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('nric_back') ?></div>
-                    <?php endif; ?>
+                    <div class="card border bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="bi bi-card-image me-2"></i>NRIC Back</h6>
+                            <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('nric_back')) ? 'is-invalid' : '' ?>" id="nric_back" name="nric_back">
+                            <small class="text-muted">Back side of NRIC (JPG, PNG or PDF, max 2MB)</small>
+                            <?php if(isset($validation) && $validation->hasError('nric_back')): ?>
+                                <div class="invalid-feedback"><?= $validation->getError('nric_back') ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <!-- Offer Letter Upload Section -->
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Documents</h5>
+                </div>
                 <div class="col-md-12">
-                    <label for="offer_letter" class="form-label">Offer Letter</label>
+                    <label for="offer_letter" class="form-label">Offer Letter <span class="text-danger">*</span></label>
                     <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('offer_letter')) ? 'is-invalid' : '' ?>" id="offer_letter" name="offer_letter">
                     <small class="text-muted">Upload the signed offer letter (PDF format, max 5MB)</small>
                     <?php if(isset($validation) && $validation->hasError('offer_letter')): ?>
@@ -97,7 +124,10 @@
             </div>
             
             <!-- Department and Position fields -->
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-briefcase me-2"></i>Employment Details</h5>
+                </div>
                 <div class="col-md-6">
                     <label for="department" class="form-label">Department</label>
                     <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('department')) ? 'is-invalid' : '' ?>" id="department" name="department" value="<?= old('department') ?>">
@@ -114,9 +144,9 @@
                 </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                     <input type="email" class="form-control <?= (isset($validation) && $validation->hasError('email')) ? 'is-invalid' : '' ?>" id="email" name="email" value="<?= old('email') ?>">
                     <?php if(isset($validation) && $validation->hasError('email')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('email') ?></div>
@@ -125,7 +155,7 @@
                 <div class="col-md-6">
                     <label for="phone" class="form-label">Phone</label>
                     <div class="input-group">
-                        <select class="form-select" style="max-width: 150px;" id="country_code" name="country_code">
+                        <select class="form-select flex-grow-0" style="max-width: 150px; min-width: 120px;" id="country_code" name="country_code">
                             <option value="+60" <?= old('country_code') == '+60' ? 'selected' : '' ?>>+60 (Malaysia)</option>
                             <option value="+65" <?= old('country_code') == '+65' ? 'selected' : '' ?>>+65 (Singapore)</option>
                             <option value="+62" <?= old('country_code') == '+62' ? 'selected' : '' ?>>+62 (Indonesia)</option>
@@ -147,23 +177,27 @@
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label for="address" class="form-label">Address</label>
-                <textarea class="form-control <?= (isset($validation) && $validation->hasError('address')) ? 'is-invalid' : '' ?>" id="address" name="address" rows="3"><?= old('address') ?></textarea>
-                <?php if(isset($validation) && $validation->hasError('address')): ?>
-                    <div class="invalid-feedback"><?= $validation->getError('address') ?></div>
-                <?php endif; ?>
+            <div class="row g-3 mb-4">
+                <div class="col-md-12">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control <?= (isset($validation) && $validation->hasError('address')) ? 'is-invalid' : '' ?>" id="address" name="address" rows="3"><?= old('address') ?></textarea>
+                    <?php if(isset($validation) && $validation->hasError('address')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('address') ?></div>
+                    <?php endif; ?>
+                </div>
             </div>
             
-            <div class="mb-3">
-                <label for="emergency_contact" class="form-label">Emergency Contact</label>
-                <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('emergency_contact')) ? 'is-invalid' : '' ?>" id="emergency_contact" name="emergency_contact" value="<?= old('emergency_contact') ?>">
-                <?php if(isset($validation) && $validation->hasError('emergency_contact')): ?>
-                    <div class="invalid-feedback"><?= $validation->getError('emergency_contact') ?></div>
-                <?php endif; ?>
+            <div class="row g-3 mb-4">
+                <div class="col-md-12">
+                    <label for="emergency_contact" class="form-label">Emergency Contact</label>
+                    <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('emergency_contact')) ? 'is-invalid' : '' ?>" id="emergency_contact" name="emergency_contact" value="<?= old('emergency_contact') ?>">
+                    <?php if(isset($validation) && $validation->hasError('emergency_contact')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('emergency_contact') ?></div>
+                    <?php endif; ?>
+                </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="date_of_birth" class="form-label">Date of Birth</label>
                     <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('date_of_birth')) ? 'is-invalid' : '' ?>" id="date_of_birth" name="date_of_birth" value="<?= old('date_of_birth') ?>">
@@ -172,7 +206,7 @@
                     <?php endif; ?>
                 </div>
                 <div class="col-md-6">
-                    <label for="hire_date" class="form-label">Hire Date</label>
+                    <label for="hire_date" class="form-label">Hire Date <span class="text-danger">*</span></label>
                     <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('hire_date')) ? 'is-invalid' : '' ?>" id="hire_date" name="hire_date" value="<?= old('hire_date', date('Y-m-d')) ?>">
                     <?php if(isset($validation) && $validation->hasError('hire_date')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('hire_date') ?></div>
@@ -180,9 +214,9 @@
                 </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label for="company_id" class="form-label">Company</label>
+                    <label for="company_id" class="form-label">Company <span class="text-danger">*</span></label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('company_id')) ? 'is-invalid' : '' ?>" id="company_id" name="company_id">
                         <option value="">Select Company</option>
                         <?php foreach($companies as $company): ?>
@@ -208,25 +242,35 @@
                 </div>
             </div>
             
-            <hr>
-            <h5>Compensation Information</h5>
-            
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-currency-dollar me-2"></i>Compensation Information</h5>
+                </div>
                 <div class="col-md-6">
                     <label for="hourly_rate" class="form-label">Hourly Rate</label>
-                    <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" value="<?= old('hourly_rate') ?>">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" value="<?= old('hourly_rate') ?>">
+                    </div>
                     <small class="text-muted">Leave blank if not applicable</small>
                 </div>
                 <div class="col-md-6">
                     <label for="monthly_salary" class="form-label">Monthly Salary</label>
-                    <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" value="<?= old('monthly_salary') ?>">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" value="<?= old('monthly_salary') ?>">
+                    </div>
                     <small class="text-muted">Leave blank if not applicable</small>
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between">
-                <a href="<?= base_url('employees') ?>" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Add Employee</button>
+            <div class="d-flex justify-content-between mt-4">
+                <a href="<?= base_url('employees') ?>" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Add Employee
+                </button>
             </div>
         </form>
     </div>
@@ -257,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             idNumberField.setAttribute('pattern', '[A-Za-z0-9]+');
             idNumberField.setAttribute('maxlength', '20');
             idHelpText.textContent = 'Enter alphanumeric value';
-            passportUploadSection.style.display = 'block';
+            passportUploadSection.style.display = 'flex';
         } else {
             idNumberField.removeAttribute('pattern');
             idNumberField.setAttribute('maxlength', '20');
