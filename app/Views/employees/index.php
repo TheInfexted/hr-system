@@ -29,16 +29,16 @@
         <?php endif; ?>
         
         <div class="table-responsive">
-            <table id="employees-table" class="table table-striped table-bordered" width="100%">
+            <table id="employees-table" class="table table-hover" width="100%">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th>#</th>
                         <th>User ID</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
-                        <th>Status</th>
                         <th>Company</th>
+                        <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -107,8 +107,8 @@ $(document).ready(function() {
             { data: 'name' },
             { data: 'email' },
             { data: 'phone' },
-            { data: 'status', orderable: false },
             { data: 'company' },
+            { data: 'status', orderable: false },
             { data: 'action', orderable: false, searchable: false }
         ],
         paging: true,
