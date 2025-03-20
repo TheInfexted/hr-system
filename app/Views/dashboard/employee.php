@@ -5,40 +5,50 @@
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Today's Attendance</h5>
+                <h5 class="mb-0 fw-semibold">Today's Attendance</h5>
             </div>
             <div class="card-body">
                 <?php if(empty($today_attendance)): ?>
-                    <div class="alert alert-info">
-                        <h5 class="alert-heading">You haven't clocked in yet!</h5>
-                        <p>Click the button below to record your attendance for today.</p>
-                        <form action="<?= base_url('attendance/clock') ?>" method="post">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="bi bi-box-arrow-in-right me-2"></i> Clock In
-                            </button>
-                        </form>
+                    <div class="alert alert-info rounded-3 mb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading">You haven't clocked in yet!</h5>
+                                <p class="mb-2">Click the button below to record your attendance for today.</p>
+                                <form action="<?= base_url('attendance/clock') ?>" method="post">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn btn-success px-4">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i> Clock In
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 <?php else: ?>
-                    <div class="row">
+                    <div class="row align-items-center">
                         <div class="col-md-4">
-                            <p><strong>Status:</strong> 
-                                <span class="badge bg-success"><?= $today_attendance['status'] ?></span>
-                            </p>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success fs-6 me-3 px-3 py-2">
+                                    <?= $today_attendance['status'] ?>
+                                </span>
+                                <p class="mb-0"><strong>Status</strong></p>
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <p><strong>Clock In:</strong> 
+                            <p class="mb-0"><strong>Clock In:</strong> 
                                 <?= !empty($today_attendance['time_in']) ? date('h:i A', strtotime($today_attendance['time_in'])) : 'Not yet' ?>
                             </p>
                         </div>
                         <div class="col-md-4">
-                            <p><strong>Clock Out:</strong> 
+                            <p class="mb-0"><strong>Clock Out:</strong> 
                                 <?php if(!empty($today_attendance['time_out'])): ?>
                                     <?= date('h:i A', strtotime($today_attendance['time_out'])) ?>
                                 <?php else: ?>
                                     <form action="<?= base_url('attendance/clock') ?>" method="post" class="d-inline">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-danger">
+                                        <button type="submit" class="btn btn-danger px-3">
                                             <i class="bi bi-box-arrow-right me-2"></i> Clock Out
                                         </button>
                                     </form>
@@ -48,8 +58,11 @@
                     </div>
                     
                     <?php if(!empty($today_attendance['time_in']) && !empty($today_attendance['time_out'])): ?>
-                        <div class="alert alert-success mt-3">
-                            <i class="bi bi-check-circle-fill me-2"></i> Your attendance is complete for today!
+                        <div class="alert alert-success rounded-3 mt-4 mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                                <div>Your attendance is complete for today!</div>
+                            </div>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
@@ -59,15 +72,16 @@
         <!-- Upcoming Events Section -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Upcoming Events</h5>
-                <a href="<?= base_url('events') ?>" class="btn btn-sm btn-outline-primary">View All</a>
+                <h5 class="mb-0 fw-semibold">Upcoming Events</h5>
+                <a href="<?= base_url('events') ?>" class="btn btn-sm btn-outline-primary rounded-pill">View All</a>
             </div>
             <div class="card-body p-0">
                 <div id="upcoming-events-container">
-                    <div class="text-center py-3">
+                    <div class="text-center py-4">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
+                        <p class="text-muted mt-2">Loading events...</p>
                     </div>
                 </div>
             </div>
@@ -75,18 +89,44 @@
         
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Quick Links</h5>
+                <h5 class="mb-0 fw-semibold">Quick Links</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <a href="<?= base_url('attendance/employee') ?>" class="btn btn-primary w-100 py-3">
-                            <i class="bi bi-calendar-check me-2"></i> View My Attendance
+                        <a href="<?= base_url('attendance/employee') ?>" class="btn btn-outline-primary d-flex align-items-center px-4 py-3 w-100">
+                            <i class="bi bi-calendar-check me-3 fs-4"></i>
+                            <div class="text-start">
+                                <strong>View My Attendance</strong>
+                                <div class="small text-secondary">Access attendance history</div>
+                            </div>
                         </a>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <a href="<?= base_url('profile') ?>" class="btn btn-info w-100 py-3 text-white">
-                            <i class="bi bi-person me-2"></i> My Profile
+                        <a href="<?= base_url('profile') ?>" class="btn btn-outline-info d-flex align-items-center px-4 py-3 w-100">
+                            <i class="bi bi-person me-3 fs-4"></i>
+                            <div class="text-start">
+                                <strong>My Profile</strong>
+                                <div class="small text-secondary">View your information</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="<?= base_url('payslips') ?>" class="btn btn-outline-success d-flex align-items-center px-4 py-3 w-100">
+                            <i class="bi bi-file-earmark-text me-3 fs-4"></i>
+                            <div class="text-start">
+                                <strong>My Payslips</strong>
+                                <div class="small text-secondary">View payment history</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="<?= base_url('events') ?>" class="btn btn-outline-warning d-flex align-items-center px-4 py-3 w-100">
+                            <i class="bi bi-calendar-event me-3 fs-4"></i>
+                            <div class="text-start">
+                                <strong>Company Events</strong>
+                                <div class="small text-secondary">View upcoming events</div>
+                            </div>
                         </a>
                     </div>
                 </div>
@@ -95,17 +135,37 @@
     </div>
     
     <div class="col-md-4">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0">My Information</h5>
+                <h5 class="mb-0 fw-semibold">My Information</h5>
             </div>
             <div class="card-body">
-                <p><strong>Name:</strong> <?= $employee['first_name'] . ' ' . $employee['last_name'] ?></p>
-                <p><strong>Employee ID:</strong> <?= str_pad($employee['id'], 5, '0', STR_PAD_LEFT) ?></p>
-                <p><strong>Position:</strong> <?= $employee['position'] ?? 'Not specified' ?></p>
-                <p><strong>Department:</strong> <?= $employee['department'] ?? 'Not specified' ?></p>
-                <p><strong>Email:</strong> <?= $employee['email'] ?></p>
-                <p><strong>Phone:</strong> <?= $employee['phone'] ?? 'Not specified' ?></p>
+                <div class="text-center mb-4">
+                    <div class="avatar-placeholder bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <?= strtoupper(substr($employee['first_name'], 0, 1) . substr($employee['last_name'], 0, 1)) ?>
+                    </div>
+                    <h5 class="mt-3 mb-1"><?= $employee['first_name'] . ' ' . $employee['last_name'] ?></h5>
+                    <p class="text-muted mb-0"><?= $employee['position'] ?? 'Employee' ?></p>
+                </div>
+
+                <div class="list-group list-group-flush border-top pt-3">
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+                        <span class="text-muted">Employee ID</span>
+                        <span class="fw-medium"><?= str_pad($employee['id'], 5, '0', STR_PAD_LEFT) ?></span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+                        <span class="text-muted">Department</span>
+                        <span class="fw-medium"><?= $employee['department'] ?? 'Not specified' ?></span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+                        <span class="text-muted">Email</span>
+                        <span class="fw-medium"><?= $employee['email'] ?></span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+                        <span class="text-muted">Phone</span>
+                        <span class="fw-medium"><?= $employee['phone'] ?? 'Not specified' ?></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -113,7 +173,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Fetch upcoming events
+    // Fetch upcoming events - keeping the original JavaScript fetch logic
     fetch('<?= base_url('events/upcomingEvents') ?>')
         .then(response => response.json())
         .then(data => {

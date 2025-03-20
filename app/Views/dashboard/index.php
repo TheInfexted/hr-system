@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <div class="row">
     <div class="col-md-3 mb-4">
-        <div class="card stats-card text-white bg-gradient-primary">
+        <div class="card stats-card text-white bg-gradient-primary h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -19,7 +19,7 @@
     </div>
     
     <div class="col-md-3 mb-4">
-        <div class="card stats-card text-white bg-gradient-success">
+        <div class="card stats-card text-white bg-gradient-success h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -35,7 +35,7 @@
     </div>
     
     <div class="col-md-3 mb-4">
-        <div class="card stats-card text-white bg-gradient-danger">
+        <div class="card stats-card text-white bg-gradient-danger h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -51,7 +51,7 @@
     </div>
     
     <div class="col-md-3 mb-4">
-        <div class="card stats-card text-white bg-gradient-info">
+        <div class="card stats-card text-white bg-gradient-info h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
