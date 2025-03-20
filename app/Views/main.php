@@ -20,37 +20,217 @@ helper('permission');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
     <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #475569;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.2s ease-in-out;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        
         .sidebar {
             min-height: 100vh;
-            background-color: #343a40;
+            background-color: var(--sidebar-bg);
             color: white;
+            transition: var(--transition);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
+        
         .sidebar .nav-link {
             color: rgba(255, 255, 255, 0.75);
+            border-radius: 6px;
+            margin: 2px 10px;
+            padding: 10px 12px;
+            transition: var(--transition);
         }
+        
         .sidebar .nav-link:hover {
             color: white;
+            background-color: var(--sidebar-hover);
         }
+        
         .sidebar .nav-link.active {
             color: white;
-            font-weight: bold;
+            font-weight: 600;
+            background-color: var(--primary-color);
         }
+        
         .main-content {
-            padding: 20px;
+            padding: 20px 30px;
         }
+        
         .navbar-brand {
-            padding: 15px;
-            font-size: 1.5rem;
+            padding: 20px 15px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
+        
         .nav-heading {
             padding: 10px 15px;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 15px;
+        }
+        
+        /* Card styling */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 16px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Button styling */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover, .btn-outline-primary:focus {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Stats cards */
+        .stats-card {
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Form elements */
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+        }
+        
+        /* Table styling */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table th {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        /* Badge styling */
+        .badge {
+            padding: 0.45em 0.75em;
+            font-weight: 500;
+            border-radius: 6px;
+        }
+        
+        /* List group styling */
+        .list-group-item {
+            border-left: none;
+            border-right: none;
+            border-color: rgba(0, 0, 0, 0.05);
+            padding: 16px 20px;
+        }
+        
+        .list-group-item:first-child {
+            border-top: none;
+        }
+        
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Custom background colors for stats cards */
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        }
+        
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+        }
+        
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        }
+        
+        /* Dropdown menus */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+        
+        .dropdown-item {
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            margin: 2px 4px;
+        }
+        
+        .dropdown-divider {
+            margin: 0.5rem 0;
         }
     </style>
 </head>
@@ -59,7 +239,7 @@ helper('permission');
         <div class="row">
             <!-- Sidebar -->
             <div class="col-md-2 d-none d-md-block sidebar p-0">
-                <div class="navbar-brand bg-primary text-white w-100 mb-4">
+                <div class="navbar-brand bg-primary text-white w-100 mb-2">
                     HR System
                 </div>
                 <ul class="nav flex-column">
@@ -162,11 +342,13 @@ helper('permission');
                     </li>
                     <?php endif; ?>
                     
+                    <?php if(session()->get('role_id') == 1): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'permissions') === 0 ? 'active' : '' ?>" href="<?= base_url('permissions') ?>">
                             <i class="bi bi-shield-lock me-2"></i> Permissions
                         </a>
                     </li>
+                    <?php endif; ?>
                     <?php endif; ?>
                     
                     <!-- Include Company Switcher Component for Sub-Account Users -->
@@ -186,14 +368,14 @@ helper('permission');
             
             <!-- Main content -->
             <div class="col-md-10 ms-sm-auto px-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2"><?= $title ?? 'Dashboard' ?></h1>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <h1 class="h2 fw-light"><?= $title ?? 'Dashboard' ?></h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle me-1"></i> <?= session()->get('username') ?>
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="<?= base_url('profile') ?>">My Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="<?= base_url('logout') ?>">Logout</a></li>
@@ -203,11 +385,17 @@ helper('permission');
                 </div>
                 
                 <?php if(session()->getFlashdata('success')): ?>
-                    <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+                    <div class="alert alert-success alert-dismissible fade show rounded-3">
+                        <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('success') ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 <?php endif; ?>
                 
                 <?php if(session()->getFlashdata('error')): ?>
-                    <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= session()->getFlashdata('error') ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 <?php endif; ?>
                 
                 <?= $this->renderSection('content') ?>
