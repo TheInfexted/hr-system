@@ -22,36 +22,34 @@
             <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
         <?php endif; ?>
         
-        <div class="row mb-3">
+        <div class="row mb-4">
             <div class="col-md-6">
-                <form action="" method="get" id="date-filter-form">
-                    <div class="row g-3">
-                        <div class="col-md-5">
-                            <input type="date" class="form-control" id="start_date" name="start_date" value="<?= $_GET['start_date'] ?? date('Y-m-01') ?>">
-                        </div>
-                        <div class="col-md-5">
-                            <input type="date" class="form-control" id="end_date" name="end_date" value="<?= $_GET['end_date'] ?? date('Y-m-d') ?>">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">Filter</button>
-                        </div>
+                <form action="" method="get" id="date-filter-form" class="d-flex align-items-center">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">From</span>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="<?= $_GET['start_date'] ?? date('Y-m-01') ?>">
+                        <span class="input-group-text bg-light">To</span>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="<?= $_GET['end_date'] ?? date('Y-m-d') ?>">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-filter me-1"></i> Filter
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
         
         <div class="table-responsive">
-            <table id="attendance-table" class="table table-striped table-bordered" width="100%">
-                <thead>
+            <table id="attendance-table" class="table table-striped table-hover table-bordered" width="100%">
+                <thead class="table-light">
                     <tr>
-                        <th>No</th>
-                        <th>Employee</th>
-                        <th>Date</th>
-                        <th>Time In</th>
-                        <th>Time Out</th>
-                        <th>Status</th>
-                        <th>Company</th>
-                        <th>Action</th>
+                        <th width="5%">No</th>
+                        <th width="20%">Employee</th>
+                        <th width="12%">Date</th>
+                        <th width="12%">Time In</th>
+                        <th width="12%">Time Out</th>
+                        <th width="10%">Status</th>
+                        <th width="15%">Company</th>
+                        <th width="14%">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -75,6 +73,7 @@ $(document).ready(function() {
     const attendanceTable = $('#attendance-table').DataTable({
         processing: true,
         serverSide: true,
+        responsive: true,
         ajax: {
             url: '<?= base_url('attendance/getAttendance') ?>',
             data: function(d) {
@@ -88,7 +87,11 @@ $(document).ready(function() {
             { 
                 data: 'date',
                 render: function(data) {
-                    return new Date(data).toLocaleDateString();
+                    return new Date(data).toLocaleDateString('en-GB', {
+                        day: '2-digit', 
+                        month: 'short', 
+                        year: 'numeric'
+                    });
                 }
             },
             { 
@@ -129,7 +132,19 @@ $(document).ready(function() {
             { data: 'company' },
             { data: 'action', orderable: false, searchable: false }
         ],
-        order: [[2, 'desc']]
+        order: [[2, 'desc']],
+        dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search records...",
+            lengthMenu: "Show _MENU_ entries",
+            paginate: {
+                first: '<i class="bi bi-chevron-double-left"></i>',
+                last: '<i class="bi bi-chevron-double-right"></i>',
+                next: '<i class="bi bi-chevron-right"></i>',
+                previous: '<i class="bi bi-chevron-left"></i>'
+            }
+        }
     });
     
     // Reload table when filter form is submitted

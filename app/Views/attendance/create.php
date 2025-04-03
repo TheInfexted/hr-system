@@ -10,18 +10,21 @@
     </div>
     <div class="card-body">
         <?php if(session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= session()->getFlashdata('error') ?>
+            </div>
         <?php endif; ?>
         
-        <form action="<?= base_url('attendance/create') ?>" method="post">
+        <form action="<?= base_url('attendance/create') ?>" method="post" class="needs-validation" novalidate>
             <?= csrf_field() ?>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label for="employee_id" class="form-label">Employee</label>
+                    <label for="employee_id" class="form-label">Employee<span class="text-danger">*</span></label>
                     <?php if(isset($is_employee) && $is_employee): ?>
                         <!-- For regular employees, show their name but use a hidden input -->
-                        <input type="text" class="form-control" value="<?= $employees[0]['first_name'] . ' ' . $employees[0]['last_name'] ?>" readonly>
+                        <div class="form-control bg-light"><?= $employees[0]['first_name'] . ' ' . $employees[0]['last_name'] ?></div>
                         <input type="hidden" name="employee_id" value="<?= $employees[0]['id'] ?>">
                     <?php else: ?>
                         <!-- For admins and managers, show dropdown -->
@@ -43,7 +46,7 @@
                     <?php endif; ?>
                 </div>
                 <div class="col-md-6">
-                    <label for="date" class="form-label">Date</label>
+                    <label for="date" class="form-label">Date<span class="text-danger">*</span></label>
                     <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('date')) ? 'is-invalid' : '' ?>" 
                            id="date" name="date" value="<?= old('date', $today) ?>">
                     <?php if(isset($validation) && $validation->hasError('date')): ?>
@@ -52,9 +55,9 @@
                 </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label for="status" class="form-label">Status</label>
+                    <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('status')) ? 'is-invalid' : '' ?>" 
                            id="status" name="status">
                         <option value="">Select Status</option>
@@ -69,27 +72,37 @@
                 </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="time_in" class="form-label">Time In</label>
-                    <input type="time" class="form-control" id="time_in" name="time_in" value="<?= old('time_in') ?>">
-                    <div class="form-text">Leave empty for absent status</div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        <input type="time" class="form-control" id="time_in" name="time_in" value="<?= old('time_in') ?>">
+                    </div>
+                    <div class="form-text text-muted">Leave empty for absent status</div>
                 </div>
                 <div class="col-md-6">
                     <label for="time_out" class="form-label">Time Out</label>
-                    <input type="time" class="form-control" id="time_out" name="time_out" value="<?= old('time_out') ?>">
-                    <div class="form-text">Leave empty if not clocked out yet</div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        <input type="time" class="form-control" id="time_out" name="time_out" value="<?= old('time_out') ?>">
+                    </div>
+                    <div class="form-text text-muted">Leave empty if not clocked out yet</div>
                 </div>
             </div>
             
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="notes" class="form-label">Notes</label>
-                <textarea class="form-control" id="notes" name="notes" rows="3"><?= old('notes') ?></textarea>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Add any relevant notes here"><?= old('notes') ?></textarea>
             </div>
             
-            <div class="d-flex justify-content-between">
-                <a href="<?= base_url('attendance') ?>" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Record Attendance</button>
+            <div class="d-flex justify-content-between mt-4">
+                <a href="<?= base_url('attendance') ?>" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-2"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-2"></i> Record Attendance
+                </button>
             </div>
         </form>
     </div>
@@ -104,6 +117,8 @@
         const statusSelect = document.getElementById('status');
         const timeInField = document.getElementById('time_in');
         const timeOutField = document.getElementById('time_out');
+        const timeInContainer = timeInField.closest('.col-md-6');
+        const timeOutContainer = timeOutField.closest('.col-md-6');
         
         statusSelect.addEventListener('change', function() {
             if (this.value === 'Absent') {
@@ -111,9 +126,13 @@
                 timeOutField.value = '';
                 timeInField.disabled = true;
                 timeOutField.disabled = true;
+                timeInContainer.classList.add('opacity-50');
+                timeOutContainer.classList.add('opacity-50');
             } else {
                 timeInField.disabled = false;
                 timeOutField.disabled = false;
+                timeInContainer.classList.remove('opacity-50');
+                timeOutContainer.classList.remove('opacity-50');
             }
         });
         
@@ -123,6 +142,8 @@
             timeOutField.value = '';
             timeInField.disabled = true;
             timeOutField.disabled = true;
+            timeInContainer.classList.add('opacity-50');
+            timeOutContainer.classList.add('opacity-50');
         }
         
         // Form validation
@@ -131,7 +152,7 @@
             
             // Check if employee is selected (only if dropdown is visible)
             const employeeSelect = document.getElementById('employee_id');
-            if (employeeSelect && !employeeSelect.value) {
+            if (employeeSelect && employeeSelect.tagName === 'SELECT' && !employeeSelect.value) {
                 employeeSelect.classList.add('is-invalid');
                 if (!employeeSelect.nextElementSibling || !employeeSelect.nextElementSibling.classList.contains('invalid-feedback')) {
                     const feedback = document.createElement('div');
@@ -166,7 +187,7 @@
                         const feedback = document.createElement('div');
                         feedback.classList.add('invalid-feedback');
                         feedback.textContent = 'Time In is required when Time Out is provided';
-                        timeInField.parentNode.insertBefore(feedback, timeInField.nextSibling);
+                        timeInField.parentNode.appendChild(feedback);
                     }
                     hasErrors = true;
                 }
@@ -174,6 +195,11 @@
             
             if (hasErrors) {
                 event.preventDefault();
+                // Scroll to the first error
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
         });
     });

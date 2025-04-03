@@ -10,29 +10,38 @@
     </div>
     <div class="card-body">
         <?php if(session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= session()->getFlashdata('error') ?>
+            </div>
         <?php endif; ?>
         
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="card">
+                <div class="card shadow-sm">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0">Employee Information</h5>
+                        <h5 class="mb-0 text-primary"><i class="bi bi-person me-2"></i>Employee Information</h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>Name:</strong> <?= $employee['first_name'] . ' ' . $employee['last_name'] ?></p>
-                        <p><strong>Date:</strong> <?= date('d F Y', strtotime($attendance['date'])) ?></p>
+                        <div class="row mb-2">
+                            <div class="col-md-4 fw-bold">Name:</div>
+                            <div class="col-md-8"><?= $employee['first_name'] . ' ' . $employee['last_name'] ?></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 fw-bold">Date:</div>
+                            <div class="col-md-8"><?= date('d F Y', strtotime($attendance['date'])) ?></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <form action="<?= base_url('attendance/update/' . $attendance['id']) ?>" method="post">
+        <form action="<?= base_url('attendance/update/' . $attendance['id']) ?>" method="post" class="needs-validation" novalidate>
             <?= csrf_field() ?>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label for="status" class="form-label">Status</label>
+                    <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('status')) ? 'is-invalid' : '' ?>" 
                            id="status" name="status">
                         <option value="Present" <?= old('status', $attendance['status']) == 'Present' ? 'selected' : '' ?>>Present</option>
@@ -46,27 +55,37 @@
                 </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="time_in" class="form-label">Time In</label>
-                    <input type="time" class="form-control" id="time_in" name="time_in" value="<?= old('time_in', $time_in) ?>">
-                    <div class="form-text">Leave empty for absent status</div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        <input type="time" class="form-control" id="time_in" name="time_in" value="<?= old('time_in', $time_in) ?>">
+                    </div>
+                    <div class="form-text text-muted">Leave empty for absent status</div>
                 </div>
                 <div class="col-md-6">
                     <label for="time_out" class="form-label">Time Out</label>
-                    <input type="time" class="form-control" id="time_out" name="time_out" value="<?= old('time_out', $time_out) ?>">
-                    <div class="form-text">Leave empty if not clocked out yet</div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        <input type="time" class="form-control" id="time_out" name="time_out" value="<?= old('time_out', $time_out) ?>">
+                    </div>
+                    <div class="form-text text-muted">Leave empty if not clocked out yet</div>
                 </div>
             </div>
             
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="notes" class="form-label">Notes</label>
-                <textarea class="form-control" id="notes" name="notes" rows="3"><?= old('notes', $attendance['notes']) ?></textarea>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Add any relevant notes here"><?= old('notes', $attendance['notes']) ?></textarea>
             </div>
             
-            <div class="d-flex justify-content-between">
-                <a href="<?= base_url('attendance') ?>" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Update Attendance</button>
+            <div class="d-flex justify-content-between mt-4">
+                <a href="<?= base_url('attendance') ?>" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-2"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-2"></i> Update Attendance
+                </button>
             </div>
         </form>
     </div>
@@ -81,6 +100,8 @@
         const statusSelect = document.getElementById('status');
         const timeInField = document.getElementById('time_in');
         const timeOutField = document.getElementById('time_out');
+        const timeInContainer = timeInField.closest('.col-md-6');
+        const timeOutContainer = timeOutField.closest('.col-md-6');
         
         statusSelect.addEventListener('change', function() {
             if (this.value === 'Absent') {
@@ -88,9 +109,13 @@
                 timeOutField.value = '';
                 timeInField.disabled = true;
                 timeOutField.disabled = true;
+                timeInContainer.classList.add('opacity-50');
+                timeOutContainer.classList.add('opacity-50');
             } else {
                 timeInField.disabled = false;
                 timeOutField.disabled = false;
+                timeInContainer.classList.remove('opacity-50');
+                timeOutContainer.classList.remove('opacity-50');
             }
         });
         
@@ -100,7 +125,48 @@
             timeOutField.value = '';
             timeInField.disabled = true;
             timeOutField.disabled = true;
+            timeInContainer.classList.add('opacity-50');
+            timeOutContainer.classList.add('opacity-50');
         }
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(event) {
+            let hasErrors = false;
+            
+            // Check if status is selected
+            if (!document.getElementById('status').value) {
+                document.getElementById('status').classList.add('is-invalid');
+                if (!document.getElementById('status').nextElementSibling || !document.getElementById('status').nextElementSibling.classList.contains('invalid-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.classList.add('invalid-feedback');
+                    feedback.textContent = 'Please select a status';
+                    document.getElementById('status').parentNode.appendChild(feedback);
+                }
+                hasErrors = true;
+            }
+            
+            // Validate time-in and time-out if status is not Absent
+            if (statusSelect.value !== 'Absent' && statusSelect.value !== '') {
+                const timeIn = timeInField.value;
+                const timeOut = timeOutField.value;
+                
+                // If time-out is provided, time-in must also be provided
+                if (timeOut && !timeIn) {
+                    timeInField.classList.add('is-invalid');
+                    if (!timeInField.nextElementSibling || !timeInField.nextElementSibling.classList.contains('invalid-feedback')) {
+                        const feedback = document.createElement('div');
+                        feedback.classList.add('invalid-feedback');
+                        feedback.textContent = 'Time In is required when Time Out is provided';
+                        timeInField.parentNode.appendChild(feedback);
+                    }
+                    hasErrors = true;
+                }
+            }
+            
+            if (hasErrors) {
+                event.preventDefault();
+            }
+        });
     });
 </script>
 <?= $this->endSection() ?>

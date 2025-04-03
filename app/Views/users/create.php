@@ -1,24 +1,6 @@
 <?= $this->extend('main') ?>
 
 <?= $this->section('content') ?>
-<!-- Success/Error Alert Modal -->
-<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="alertModalLabel">Message</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="alertModalBody">
-                <!-- Message content will be inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Create New User</h4>
@@ -28,14 +10,17 @@
     </div>
     <div class="card-body">
         <?php if(session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger d-none" id="errorFlash"><?= session()->getFlashdata('error') ?></div>
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= session()->getFlashdata('error') ?>
+            </div>
         <?php endif; ?>
         
         <form action="<?= base_url('users/create') ?>" method="post" id="createUserForm">
             <?= csrf_field() ?>
             
             <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
+                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
                 <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('username')) ? 'is-invalid' : '' ?>" 
                        id="username" name="username" value="<?= old('username') ?>">
                 <?php if(isset($validation) && $validation->hasError('username')): ?>
@@ -44,7 +29,7 @@
             </div>
             
             <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                 <input type="email" class="form-control <?= (isset($validation) && $validation->hasError('email')) ? 'is-invalid' : '' ?>" 
                        id="email" name="email" value="<?= old('email') ?>">
                 <?php if(isset($validation) && $validation->hasError('email')): ?>
@@ -53,7 +38,7 @@
             </div>
             
             <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
+                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
                 <input type="password" class="form-control <?= (isset($validation) && $validation->hasError('password')) ? 'is-invalid' : '' ?>" 
                        id="password" name="password">
                 <?php if(isset($validation) && $validation->hasError('password')): ?>
@@ -64,7 +49,7 @@
             
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="role_id" class="form-label">Role</label>
+                    <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('role_id')) ? 'is-invalid' : '' ?>" 
                            id="role_id" name="role_id">
                         <option value="">Select Role</option>
@@ -79,7 +64,7 @@
                     <?php endif; ?>
                 </div>
                 
-                <?php if(session()->get('role_id') == 1 || has_permission('create_companies')): ?>
+                <?php if(session()->get('role_id') == 1): ?>
                 <div class="col-md-6">
                     <label for="company_id" class="form-label">Company</label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('company_id')) ? 'is-invalid' : '' ?>" 
@@ -95,8 +80,8 @@
                         <div class="invalid-feedback"><?= $validation->getError('company_id') ?></div>
                     <?php endif; ?>
                 </div>
-                <?php else: // For company managers, company is pre-selected ?>
-                <input type="hidden" name="company_id" value="<?= session()->get('company_id') ?>">
+                <?php elseif(session()->get('role_id') == 2): ?>
+                    <input type="hidden" name="company_id" value="<?= session()->get('company_id') ?>">
                 <?php endif; ?>
             </div>
             
@@ -107,95 +92,102 @@
         </form>
     </div>
 </div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to show modal with error message
-    function showErrorModal(message) {
-        const modalBody = document.getElementById('alertModalBody');
-        const modalTitle = document.getElementById('alertModalLabel');
-        
-        // Set content and styling
-        modalTitle.textContent = 'Error';
-        modalTitle.classList.add('text-danger');
-        modalBody.innerHTML = `<div class="alert alert-danger mb-0">${message}</div>`;
-        
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('alertModal'));
-        modal.show();
-    }
-    
-    // Check for flash error messages and display in modal
-    const errorFlash = document.getElementById('errorFlash');
-    if (errorFlash && errorFlash.textContent.trim() !== '') {
-        showErrorModal(errorFlash.textContent);
-    }
-    
-    // Check for validation errors and display in modal
-    const invalidFeedbacks = document.querySelectorAll('.invalid-feedback');
-    if (invalidFeedbacks.length > 0) {
-        let errorMessages = '<ul class="mb-0">';
-        invalidFeedbacks.forEach(function(feedback) {
-            if (feedback.textContent.trim() !== '') {
-                errorMessages += `<li>${feedback.textContent}</li>`;
-            }
-        });
-        errorMessages += '</ul>';
-        
-        showErrorModal('Please correct the following errors:' + errorMessages);
-    }
-    
-    // Client-side form validation before submission
-    const form = document.getElementById('createUserForm');
-    form.addEventListener('submit', function(event) {
+    // Client-side validation
+    document.getElementById('createUserForm')?.addEventListener('submit', function(event) {
         let hasErrors = false;
-        let errorMessages = '<ul class="mb-0">';
         
         // Validate username
         const username = document.getElementById('username').value.trim();
         if (username === '' || username.length < 3) {
             hasErrors = true;
-            errorMessages += '<li>Username is required and must be at least 3 characters long</li>';
+            document.getElementById('username').classList.add('is-invalid');
+            
+            // Create error message if it doesn't exist
+            if (!document.getElementById('username-error')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'username-error';
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.innerText = 'Username is required and must be at least 3 characters';
+                document.getElementById('username').parentNode.appendChild(errorDiv);
+            }
         }
         
         // Validate email
         const email = document.getElementById('email').value.trim();
         if (email === '' || !email.includes('@')) {
             hasErrors = true;
-            errorMessages += '<li>Please enter a valid email address</li>';
+            document.getElementById('email').classList.add('is-invalid');
+            
+            // Create error message if it doesn't exist
+            if (!document.getElementById('email-error')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'email-error';
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.innerText = 'A valid email address is required';
+                document.getElementById('email').parentNode.appendChild(errorDiv);
+            }
         }
         
         // Validate password
         const password = document.getElementById('password').value;
         if (password === '' || password.length < 8) {
             hasErrors = true;
-            errorMessages += '<li>Password must be at least 8 characters long</li>';
+            document.getElementById('password').classList.add('is-invalid');
+            
+            // Create error message if it doesn't exist
+            if (!document.getElementById('password-error')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'password-error';
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.innerText = 'Password must be at least 8 characters long';
+                document.getElementById('password').parentNode.appendChild(errorDiv);
+            }
         }
         
         // Validate role
         const roleId = document.getElementById('role_id').value;
         if (roleId === '') {
             hasErrors = true;
-            errorMessages += '<li>Please select a role</li>';
-        }
-        
-        // Validate company (for admin users)
-        if (<?= session()->get('role_id') ?> === 1) {
-            const companyId = document.getElementById('company_id').value;
-            if (companyId === '') {
-                hasErrors = true;
-                errorMessages += '<li>Please select a company</li>';
+            document.getElementById('role_id').classList.add('is-invalid');
+            
+            // Create error message if it doesn't exist
+            if (!document.getElementById('role-error')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'role-error';
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.innerText = 'Please select a role';
+                document.getElementById('role_id').parentNode.appendChild(errorDiv);
             }
         }
         
-        errorMessages += '</ul>';
+        // If admin, validate company selection
+        <?php if(session()->get('role_id') == 1): ?>
+        const companyId = document.getElementById('company_id').value;
+        const roleValue = document.getElementById('role_id').value;
+        // Only require company for certain roles (e.g., Company Manager or Employee)
+        if ((roleValue == '2' || roleValue == '7') && companyId === '') {
+            hasErrors = true;
+            document.getElementById('company_id').classList.add('is-invalid');
+            
+            // Create error message if it doesn't exist
+            if (!document.getElementById('company-error')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'company-error';
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.innerText = 'Please select a company';
+                document.getElementById('company_id').parentNode.appendChild(errorDiv);
+            }
+        }
+        <?php endif; ?>
         
-        // Show errors and prevent form submission if validation fails
+        // Prevent form submission if there are errors
         if (hasErrors) {
             event.preventDefault();
-            showErrorModal('Please correct the following errors:' + errorMessages);
         }
     });
-});
 </script>
 <?= $this->endSection() ?>

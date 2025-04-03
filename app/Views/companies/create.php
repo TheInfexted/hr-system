@@ -13,7 +13,7 @@
             <?= csrf_field() ?>
             
             <div class="mb-3">
-                <label for="name" class="form-label">Company Name</label>
+                <label for="name" class="form-label">Company Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('name')) ? 'is-invalid' : '' ?>" 
                        id="name" name="name" value="<?= old('name') ?>">
                 <?php if(isset($validation) && $validation->hasError('name')): ?>

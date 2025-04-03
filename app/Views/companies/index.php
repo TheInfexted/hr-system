@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Company Management</h4>
+        <h4 class="mb-0">Companies</h4>
         <a href="<?= base_url('companies/create') ?>" class="btn btn-primary">
             <i class="bi bi-building-add me-2"></i> Add New Company
         </a>

@@ -114,7 +114,7 @@ helper('permission');
             padding: 20px;
         }
         
-        /* Button styling */
+        /* Button styling with hover effects */
         .btn {
             border-radius: 8px;
             font-weight: 500;
@@ -122,16 +122,56 @@ helper('permission');
             transition: var(--transition);
         }
         
+        /* Primary button with white text */
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            color: white;
         }
         
         .btn-primary:hover, .btn-primary:focus {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
+            color: white !important;
         }
         
+        /* Secondary button with white text */
+        .btn-secondary {
+            color: #fff;
+        }
+        
+        .btn-secondary:hover, .btn-secondary:focus {
+            color: white !important;
+        }
+        
+        /* Success button with white text */
+        .btn-success {
+            color: #fff;
+        }
+        
+        .btn-success:hover, .btn-success:focus {
+            color: white !important;
+        }
+        
+        /* Danger button with white text */
+        .btn-danger {
+            color: #fff;
+        }
+        
+        .btn-danger:hover, .btn-danger:focus {
+            color: white !important;
+        }
+        
+        /* Info button with white text */
+        .btn-info {
+            color: #fff;
+        }
+        
+        .btn-info:hover, .btn-info:focus {
+            color: white !important;
+        }
+        
+        /* Outline primary button with hover effect */
         .btn-outline-primary {
             color: var(--primary-color);
             border-color: var(--primary-color);
@@ -140,6 +180,15 @@ helper('permission');
         .btn-outline-primary:hover, .btn-outline-primary:focus {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            color: white !important;
+        }
+        
+        /* For other outline buttons, ensure text changes to white on hover */
+        .btn-outline-secondary:hover,
+        .btn-outline-success:hover,
+        .btn-outline-danger:hover,
+        .btn-outline-info:hover {
+            color: white !important;
         }
         
         /* Stats cards */
@@ -231,6 +280,55 @@ helper('permission');
         
         .dropdown-divider {
             margin: 0.5rem 0;
+        }
+        
+        /* Subtext color changes on hover */
+        
+        /* Make all text within buttons turn white on hover (including small text, spans, etc.) */
+        .btn:hover *, .btn:focus * {
+            color: white !important;
+        }
+        
+        /* Exception for warning buttons to keep dark text */
+        .btn-warning:hover *, .btn-warning:focus *,
+        .btn-outline-warning:hover *, .btn-outline-warning:focus * {
+            color: #212529 !important;
+        }
+        
+        /* Handle form text below inputs */
+        .form-text {
+            color: #6c757d;
+            transition: var(--transition);
+        }
+        
+        /* Style for small text inside cards that should change on hover */
+        .card-hover-effect .text-muted,
+        .card-hover-effect .small {
+            transition: var(--transition);
+        }
+        
+        .card-hover-effect:hover .text-muted,
+        .card-hover-effect:hover .small {
+            color: white !important;
+        }
+        
+        /* For links that have subtexts */
+        a:hover .text-muted,
+        a:hover .small,
+        a:focus .text-muted,
+        a:focus .small {
+            color: white !important;
+        }
+        
+        /* Make sure icons inside buttons also follow the same color scheme */
+        .btn:hover i, .btn:focus i {
+            color: white !important;
+        }
+        
+        /* Exception for warning buttons */
+        .btn-warning:hover i, .btn-warning:focus i,
+        .btn-outline-warning:hover i, .btn-outline-warning:focus i {
+            color: #212529 !important;
         }
     </style>
 </head>

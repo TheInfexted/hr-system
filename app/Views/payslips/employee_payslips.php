@@ -2,26 +2,21 @@
 
 <?= $this->section('content') ?>
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">My Payslips</h4>
     </div>
     <div class="card-body">
-        <?php if(session()->getFlashdata('success')): ?>
-            <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
-        <?php endif; ?>
-        
-        <?php if(session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
-        <?php endif; ?>
-        
         <?php if(empty($payslips)): ?>
-            <div class="alert alert-info">
-                <h5>No Payslips Available</h5>
-                <p>You don't have any payslips available yet. If you believe this is an error, please contact your HR department.</p>
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                <div>
+                    <h5 class="alert-heading">No Payslips Available</h5>
+                    <p class="mb-0">You don't have any payslips available yet. If you believe this is an error, please contact your HR department.</p>
+                </div>
             </div>
         <?php else: ?>
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
+                <table id="payslipTable" class="table table-hover">
                     <thead>
                         <tr>
                             <th>Period</th>
@@ -39,14 +34,18 @@
                             $monthName = (new \App\Models\PayslipModel())->getMonthName($payslip['month']);
                         ?>
                         <tr>
-                            <td><?= $monthName ?> <?= $payslip['year'] ?></td>
-                            <td>$<?= number_format($payslip['basic_pay'], 2) ?></td>
-                            <td>$<?= number_format($payslip['total_earnings'], 2) ?></td>
-                            <td>$<?= number_format($payslip['total_deductions'], 2) ?></td>
-                            <td class="fw-bold text-success">$<?= number_format($payslip['net_pay'], 2) ?></td>
+                            <td>
+                                <span class="fw-medium"><?= $monthName ?> <?= $payslip['year'] ?></span>
+                            </td>
+                            <td class="text-success">$<?= number_format($payslip['basic_pay'], 2) ?></td>
+                            <td class="text-success">$<?= number_format($payslip['total_earnings'], 2) ?></td>
+                            <td class="text-danger">$<?= number_format($payslip['total_deductions'], 2) ?></td>
+                            <td class="fw-bold text-primary">$<?= number_format($payslip['net_pay'], 2) ?></td>
                             <td>
                                 <?php 
                                     $statusBadge = 'secondary';
+                                    $statusText = ucfirst($payslip['status']);
+                                    
                                     switch($payslip['status']) {
                                         case 'generated':
                                             $statusBadge = 'info';
@@ -59,7 +58,7 @@
                                             break;
                                     }
                                 ?>
-                                <span class="badge bg-<?= $statusBadge ?>"><?= ucfirst($payslip['status']) ?></span>
+                                <span class="badge bg-<?= $statusBadge ?> rounded-pill px-3 py-2"><?= $statusText ?></span>
                             </td>
                             <td>
                                 <a href="<?= base_url('payslips/view/' . $payslip['id']) ?>" class="btn btn-sm btn-primary">
@@ -74,4 +73,22 @@
         <?php endif; ?>
     </div>
 </div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    $(document).ready(function() {
+        $('#payslipTable').DataTable({
+            responsive: true,
+            order: [[0, "desc"]], // Sort by period (newest first)
+            language: {
+                search: "<i class='bi bi-search'></i>",
+                searchPlaceholder: "Search payslips..."
+            },
+            "dom": '<"top d-flex justify-content-between align-items-center mb-3"lf><"table-responsive"rt><"bottom d-flex justify-content-between align-items-center"ip>',
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+        });
+    });
+</script>
 <?= $this->endSection() ?>
