@@ -59,6 +59,22 @@ class CompensationModel extends Model
     }
     
     /**
+     * Get compensation with currency information by employee ID
+     * If multiple records exist, returns the most recent one
+     *
+     * @param int $employeeId
+     * @return array
+     */
+    public function getWithCurrencyByEmployee($employeeId)
+    {
+        return $this->select('compensation.*, currencies.currency_symbol, currencies.currency_code')
+                    ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
+                    ->where('compensation.employee_id', $employeeId)
+                    ->orderBy('compensation.effective_date', 'DESC')
+                    ->first();
+    }
+    
+    /**
      * Get compensation history with currency information
      *
      * @param int $employeeId
@@ -71,5 +87,42 @@ class CompensationModel extends Model
                     ->where('compensation.employee_id', $employeeId)
                     ->orderBy('compensation.effective_date', 'DESC')
                     ->findAll();
+    }
+    
+    /**
+     * Get all compensations with employee, company and currency information
+     *
+     * @return array
+     */
+    public function getAllWithDetails()
+    {
+        return $this->select('compensation.*, employees.first_name, employees.last_name, 
+                             employees.id as emp_id, companies.name as company_name, 
+                             currencies.currency_symbol, currencies.currency_code')
+                    ->join('employees', 'employees.id = compensation.employee_id')
+                    ->join('companies', 'companies.id = employees.company_id')
+                    ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
+                    ->orderBy('compensation.effective_date', 'DESC')
+                    ->findAll();
+    }
+    
+    /**
+     * Calculate net pay for a compensation record
+     *
+     * @param array $compensation Compensation record
+     * @return float Net pay amount
+     */
+    public function calculateNetPay(array $compensation)
+    {
+        $totalEarnings = ($compensation['monthly_salary'] ?? 0) + 
+                         ($compensation['allowance'] ?? 0) + 
+                         ($compensation['overtime'] ?? 0);
+                
+        $totalDeductions = ($compensation['epf_employee'] ?? 0) + 
+                          ($compensation['socso_employee'] ?? 0) +
+                          ($compensation['eis_employee'] ?? 0) +
+                          ($compensation['pcb'] ?? 0);
+        
+        return $totalEarnings - $totalDeductions;
     }
 }

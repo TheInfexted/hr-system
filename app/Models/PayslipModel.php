@@ -146,4 +146,38 @@ class PayslipModel extends Model
                     ->where('payslips.id', $payslipId)
                     ->first();
     }
+    
+    /**
+     * Get all payslips with employee, company, and currency information
+     *
+     * @return array
+     */
+    public function getAllWithDetails()
+    {
+        return $this->select('payslips.*, employees.first_name, employees.last_name, 
+                             companies.name as company_name, 
+                             currencies.currency_symbol, currencies.currency_code')
+                    ->join('employees', 'employees.id = payslips.employee_id')
+                    ->join('companies', 'companies.id = employees.company_id')
+                    ->join('currencies', 'currencies.id = payslips.currency_id', 'left')
+                    ->orderBy('payslips.created_at', 'DESC')
+                    ->findAll();
+    }
+    
+    /**
+     * Get payslips for a specific company with currency information
+     *
+     * @param int $companyId
+     * @return array
+     */
+    public function getCompanyPayslips($companyId)
+    {
+        return $this->select('payslips.*, employees.first_name, employees.last_name, 
+                             currencies.currency_symbol, currencies.currency_code')
+                    ->join('employees', 'employees.id = payslips.employee_id')
+                    ->join('currencies', 'currencies.id = payslips.currency_id', 'left')
+                    ->where('employees.company_id', $companyId)
+                    ->orderBy('payslips.created_at', 'DESC')
+                    ->findAll();
+    }
 }

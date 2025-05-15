@@ -26,6 +26,7 @@
                             <th>Company</th>
                             <?php endif; ?>
                             <th>ID</th>
+                            <th>Currency</th>
                             <th>Hourly Rate</th>
                             <th>Monthly Salary</th>
                             <th>Effective Date</th>
@@ -47,15 +48,28 @@
                             <?php endif; ?>
                             <td><?= $compensation['emp_id'] ?? 'N/A' ?></td>
                             <td>
+                                <?php if(!empty($compensation['currency_code'])): ?>
+                                    <span class="badge bg-info">
+                                        <?= $compensation['currency_code'] ?> (<?= $compensation['currency_symbol'] ?>)
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Default</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
                                 <?php if(!empty($compensation['hourly_rate'])): ?>
-                                    <span class="text-secondary">$<?= number_format($compensation['hourly_rate'], 2) ?></span>
+                                    <span class="text-secondary">
+                                        <?= $compensation['currency_symbol'] ?><?= number_format($compensation['hourly_rate'], 2) ?>
+                                    </span>
                                 <?php else: ?>
                                     <span class="text-muted">—</span>
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <?php if(!empty($compensation['monthly_salary'])): ?>
-                                    <span class="text-secondary">$<?= number_format($compensation['monthly_salary'], 2) ?></span>
+                                    <span class="text-secondary">
+                                        <?= $compensation['currency_symbol'] ?><?= number_format($compensation['monthly_salary'], 2) ?>
+                                    </span>
                                 <?php else: ?>
                                     <span class="text-muted">—</span>
                                 <?php endif; ?>
@@ -94,7 +108,7 @@
     $(document).ready(function() {
         $('#compensationTable').DataTable({
             responsive: true,
-            order: [[5, 'desc']], // Sort by effective date by default
+            order: [[6, 'desc']], // Sort by effective date by default
             language: {
                 search: "<i class='bi bi-search'></i>",
                 searchPlaceholder: "Search records..."

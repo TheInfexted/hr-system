@@ -30,6 +30,7 @@
                     <thead>
                         <tr>
                             <th>Effective Date</th>
+                            <th>Currency</th>
                             <th>Basic Salary</th>
                             <th>Hourly Rate</th>
                             <th>Allowance</th>
@@ -45,14 +46,53 @@
                         <?php foreach($history as $record): ?>
                             <tr>
                                 <td><?= date('M d, Y', strtotime($record['effective_date'])) ?></td>
-                                <td><?= !empty($record['monthly_salary']) ? '$' . number_format($record['monthly_salary'], 2) : '-' ?></td>
-                                <td><?= !empty($record['hourly_rate']) ? '$' . number_format($record['hourly_rate'], 2) : '-' ?></td>
-                                <td><?= !empty($record['allowance']) ? '$' . number_format($record['allowance'], 2) : '$0.00' ?></td>
-                                <td><?= !empty($record['overtime']) ? '$' . number_format($record['overtime'], 2) : '$0.00' ?></td>
-                                <td><?= !empty($record['epf_employee']) ? '$' . number_format($record['epf_employee'], 2) : '$0.00' ?></td>
-                                <td><?= !empty($record['socso_employee']) ? '$' . number_format($record['socso_employee'], 2) : '$0.00' ?></td>
-                                <td><?= !empty($record['eis_employee']) ? '$' . number_format($record['eis_employee'], 2) : '$0.00' ?></td>
-                                <td><?= !empty($record['pcb']) ? '$' . number_format($record['pcb'], 2) : '$0.00' ?></td>
+                                <td>
+                                    <?php if(!empty($record['currency_code'])): ?>
+                                        <?= $record['currency_code'] ?> (<?= $record['currency_symbol'] ?>)
+                                    <?php else: ?>
+                                        Default
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['monthly_salary']) 
+                                        ? $record['currency_symbol'] . number_format($record['monthly_salary'], 2) 
+                                        : '-' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['hourly_rate']) 
+                                        ? $record['currency_symbol'] . number_format($record['hourly_rate'], 2) 
+                                        : '-' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['allowance']) 
+                                        ? $record['currency_symbol'] . number_format($record['allowance'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['overtime']) 
+                                        ? $record['currency_symbol'] . number_format($record['overtime'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['epf_employee']) 
+                                        ? $record['currency_symbol'] . number_format($record['epf_employee'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['socso_employee']) 
+                                        ? $record['currency_symbol'] . number_format($record['socso_employee'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['eis_employee']) 
+                                        ? $record['currency_symbol'] . number_format($record['eis_employee'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['pcb']) 
+                                        ? $record['currency_symbol'] . number_format($record['pcb'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
                                 <td>
                                     <a href="<?= base_url('compensation/view/' . $record['id']) ?>" class="btn btn-sm btn-info">
                                         <i class="bi bi-eye"></i>

@@ -49,6 +49,13 @@ $routes->get('events/edit/(:num)', 'EventController::edit/$1', ['filter' => 'aut
 $routes->get('events/view/(:num)', 'EventController::view/$1', ['filter' => 'auth']);
 $routes->get('events/delete/(:num)', 'EventController::delete/$1', ['filter' => 'auth:delete_events']);
 
+// CURRENCY ROUTES - New routes for currency management
+$routes->get('currencies', 'CurrencyController::index', ['filter' => 'auth:view_currencies']);
+$routes->get('currencies/create', 'CurrencyController::create', ['filter' => 'auth:create_currencies']);
+$routes->get('currencies/edit/(:num)', 'CurrencyController::edit/$1', ['filter' => 'auth:edit_currencies']);
+$routes->get('currencies/toggle-status/(:num)', 'CurrencyController::toggleStatus/$1', ['filter' => 'auth:edit_currencies']);
+$routes->get('currencies/delete/(:num)', 'CurrencyController::delete/$1', ['filter' => 'auth:delete_currencies']);
+
 // User Controller Routes
 $routes->get('users/getUsers', 'UserController::getUsers', ['filter' => 'auth:view_users']);
 $routes->post('users/create', 'UserController::store', ['filter' => 'auth:create_users']);
@@ -79,6 +86,10 @@ $routes->get('companies/getCompanies', 'CompanyController::getCompanies', ['filt
 $routes->post('companies/create', 'CompanyController::store', ['filter' => 'auth:create_companies']);
 $routes->post('companies/update/(:num)', 'CompanyController::update/$1', ['filter' => 'auth:edit_companies']);
 $routes->get('companies/delete/(:num)', 'CompanyController::delete/$1', ['filter' => 'auth:delete_companies']);
+
+// Currency Controller Routes - New POST routes
+$routes->post('currencies/create', 'CurrencyController::store', ['filter' => 'auth:create_currencies']);
+$routes->post('currencies/update/(:num)', 'CurrencyController::update/$1', ['filter' => 'auth:edit_currencies']);
 
 // Permissions Controller Routes
 $routes->post('permissions/update/(:num)', 'PermissionController::update/$1', ['filter' => 'auth:1']);

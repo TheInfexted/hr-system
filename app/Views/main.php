@@ -509,6 +509,14 @@ helper('permission');
                     </li>
                     <?php endif; ?>
                     
+                    <?php if(session()->get('role_id') == 1 || has_permission('view_currencies')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= strpos(uri_string(), 'currencies') === 0 ? 'active' : '' ?>" href="<?= base_url('currencies') ?>">
+                            <i class="bi bi-currency-exchange me-2"></i> Currencies
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                    
                     <?php if(session()->get('role_id') == 1 || has_permission('view_companies')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= strpos(uri_string(), 'companies') === 0 ? 'active' : '' ?>" href="<?= base_url('companies') ?>">

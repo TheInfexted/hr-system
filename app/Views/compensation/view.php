@@ -57,6 +57,9 @@
                 <div class="card mb-4 border-0 shadow-sm">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">Compensation Information</h5>
+                        <?php if(!empty($compensation['currency_code'])): ?>
+                        <small class="text-muted">All amounts in <?= $compensation['currency_code'] ?> (<?= $compensation['currency_symbol'] ?>)</small>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body p-0">
                         <table class="table mb-0">
@@ -66,25 +69,25 @@
                             <tr>
                                 <th style="width: 40%">Basic Salary</th>
                                 <td class="fw-medium text-success">
-                                    <?= !empty($compensation['monthly_salary']) ? '$' . number_format($compensation['monthly_salary'], 2) : 'N/A' ?>
+                                    <?= !empty($compensation['monthly_salary']) ? $compensation['currency_symbol'] . number_format($compensation['monthly_salary'], 2) : 'N/A' ?>
                                 </td>
                             </tr>
                             <tr>
                                 <th>Hourly Rate</th>
                                 <td class="fw-medium text-success">
-                                    <?= !empty($compensation['hourly_rate']) ? '$' . number_format($compensation['hourly_rate'], 2) : 'N/A' ?>
+                                    <?= !empty($compensation['hourly_rate']) ? $compensation['currency_symbol'] . number_format($compensation['hourly_rate'], 2) : 'N/A' ?>
                                 </td>
                             </tr>
                             <tr>
                                 <th>Allowance</th>
                                 <td class="fw-medium text-success">
-                                    <?= !empty($compensation['allowance']) ? '$' . number_format($compensation['allowance'], 2) : '$0.00' ?>
+                                    <?= !empty($compensation['allowance']) ? $compensation['currency_symbol'] . number_format($compensation['allowance'], 2) : $compensation['currency_symbol'] . '0.00' ?>
                                 </td>
                             </tr>
                             <tr>
                                 <th>Overtime</th>
                                 <td class="fw-medium text-success">
-                                    <?= !empty($compensation['overtime']) ? '$' . number_format($compensation['overtime'], 2) : '$0.00' ?>
+                                    <?= !empty($compensation['overtime']) ? $compensation['currency_symbol'] . number_format($compensation['overtime'], 2) : $compensation['currency_symbol'] . '0.00' ?>
                                 </td>
                             </tr>
                             <tr class="bg-light">
@@ -93,25 +96,25 @@
                             <tr>
                                 <th>EPF Employee</th>
                                 <td class="fw-medium text-danger">
-                                    <?= !empty($compensation['epf_employee']) ? '-$' . number_format($compensation['epf_employee'], 2) : '$0.00' ?>
+                                    <?= !empty($compensation['epf_employee']) ? '-' . $compensation['currency_symbol'] . number_format($compensation['epf_employee'], 2) : $compensation['currency_symbol'] . '0.00' ?>
                                 </td>
                             </tr>
                             <tr>
                                 <th>SOCSO Employee</th>
                                 <td class="fw-medium text-danger">
-                                    <?= !empty($compensation['socso_employee']) ? '-$' . number_format($compensation['socso_employee'], 2) : '$0.00' ?>
+                                    <?= !empty($compensation['socso_employee']) ? '-' . $compensation['currency_symbol'] . number_format($compensation['socso_employee'], 2) : $compensation['currency_symbol'] . '0.00' ?>
                                 </td>
                             </tr>
                             <tr>
                                 <th>EIS Employee</th>
                                 <td class="fw-medium text-danger">
-                                    <?= !empty($compensation['eis_employee']) ? '-$' . number_format($compensation['eis_employee'], 2) : '$0.00' ?>
+                                    <?= !empty($compensation['eis_employee']) ? '-' . $compensation['currency_symbol'] . number_format($compensation['eis_employee'], 2) : $compensation['currency_symbol'] . '0.00' ?>
                                 </td>
                             </tr>
                             <tr>
                                 <th>PCB</th>
                                 <td class="fw-medium text-danger">
-                                    <?= !empty($compensation['pcb']) ? '-$' . number_format($compensation['pcb'], 2) : '$0.00' ?>
+                                    <?= !empty($compensation['pcb']) ? '-' . $compensation['currency_symbol'] . number_format($compensation['pcb'], 2) : $compensation['currency_symbol'] . '0.00' ?>
                                 </td>
                             </tr>
                             <tr>
@@ -150,20 +153,26 @@
                             <div class="col-md-6">
                                 <div class="text-center p-3">
                                     <p class="text-muted mb-0">Total Earnings</p>
-                                    <h3 class="text-success mb-0">$<?= number_format($totalEarnings, 2) ?></h3>
+                                    <h3 class="text-success mb-0">
+                                        <?= $compensation['currency_symbol'] ?><?= number_format($totalEarnings, 2) ?>
+                                    </h3>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="text-center p-3">
                                     <p class="text-muted mb-0">Total Deductions</p>
-                                    <h3 class="text-danger mb-0">$<?= number_format($totalDeductions, 2) ?></h3>
+                                    <h3 class="text-danger mb-0">
+                                        <?= $compensation['currency_symbol'] ?><?= number_format($totalDeductions, 2) ?>
+                                    </h3>
                                 </div>
                             </div>
                         </div>
                         <hr>
                         <div class="text-center p-3">
                             <p class="text-muted mb-1">Net Pay</p>
-                            <h2 class="text-primary">$<?= number_format($netPay, 2) ?></h2>
+                            <h2 class="text-primary">
+                                <?= $compensation['currency_symbol'] ?><?= number_format($netPay, 2) ?>
+                            </h2>
                         </div>
                     </div>
                 </div>

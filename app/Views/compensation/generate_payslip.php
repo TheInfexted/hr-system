@@ -55,22 +55,54 @@
             <div class="card mb-4">
                 <div class="card-header bg-light">
                     <h5 class="mb-0">Current Compensation Details</h5>
+                    <?php if(!empty($compensation['currency_code'])): ?>
+                    <small class="text-muted">All amounts in <?= $compensation['currency_code'] ?> (<?= $compensation['currency_symbol'] ?>)</small>
+                    <?php endif; ?>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4">
-                            <p><strong>Basic Salary:</strong> $<?= number_format($compensation['monthly_salary'] ?? 0, 2) ?></p>
-                            <p><strong>Allowance:</strong> $<?= number_format($compensation['allowance'] ?? 0, 2) ?></p>
-                            <p><strong>Overtime:</strong> $<?= number_format($compensation['overtime'] ?? 0, 2) ?></p>
+                            <p><strong>Basic Salary:</strong> 
+                                <?= isset($compensation['monthly_salary']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['monthly_salary'], 2) : 
+                                    'Not set' ?>
+                            </p>
+                            <p><strong>Allowance:</strong> 
+                                <?= isset($compensation['allowance']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['allowance'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
+                            <p><strong>Overtime:</strong> 
+                                <?= isset($compensation['overtime']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['overtime'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
                         </div>
                         <div class="col-md-4">
-                            <p><strong>EPF Employee:</strong> $<?= number_format($compensation['epf_employee'] ?? 0, 2) ?></p>
-                            <p><strong>SOCSO Employee:</strong> $<?= number_format($compensation['socso_employee'] ?? 0, 2) ?></p>
-                            <p><strong>EIS Employee:</strong> $<?= number_format($compensation['eis_employee'] ?? 0, 2) ?></p>
+                            <p><strong>EPF Employee:</strong> 
+                                <?= isset($compensation['epf_employee']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['epf_employee'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
+                            <p><strong>SOCSO Employee:</strong> 
+                                <?= isset($compensation['socso_employee']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['socso_employee'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
+                            <p><strong>EIS Employee:</strong> 
+                                <?= isset($compensation['eis_employee']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['eis_employee'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
                         </div>
                         <div class="col-md-4">
-                            <p><strong>PCB:</strong> $<?= number_format($compensation['pcb'] ?? 0, 2) ?></p>
+                            <p><strong>PCB:</strong> 
+                                <?= isset($compensation['pcb']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['pcb'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
                             <p><strong>Effective Date:</strong> <?= date('d M Y', strtotime($compensation['effective_date'] ?? date('Y-m-d'))) ?></p>
+                            <p><strong>Currency:</strong> <?= $compensation['currency_code'] ?? 'Default' ?></p>
                         </div>
                     </div>
                 </div>
@@ -83,4 +115,18 @@
         </form>
     </div>
 </div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date picker
+    if (typeof AirDatepicker === 'function') {
+        new AirDatepicker('#pay_date', {
+            dateFormat: 'yyyy-MM-dd'
+        });
+    }
+});
+</script>
 <?= $this->endSection() ?>
