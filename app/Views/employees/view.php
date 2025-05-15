@@ -246,6 +246,88 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- User Account Information Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary"><i class="bi bi-person-badge me-2"></i>User Account Information</h5>
+                        <?php if (has_permission('edit_users')): ?>
+                        <div>
+                            <?php if (!empty($employee['user_id'])): ?>
+                            <a href="<?= base_url('profile/manage-employee-user/'.$employee['id']) ?>" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil me-1"></i> Manage Account
+                            </a>
+                            <?php else: ?>
+                            <a href="<?= base_url('profile/manage-employee-user/'.$employee['id']) ?>" class="btn btn-success btn-sm">
+                                <i class="bi bi-person-plus me-1"></i> Create Account
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($employee['user_id'])): ?>
+                            <div class="alert alert-info rounded-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bi bi-info-circle-fill fs-3"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="alert-heading mb-1">No User Account</h6>
+                                        <p class="mb-0">This employee does not have a user account to log into the system.</p>
+                                    </div>
+                                </div>
+                                <?php if (has_permission('create_users')): ?>
+                                <div class="mt-3">
+                                    <a href="<?= base_url('profile/manage-employee-user/'.$employee['id']) ?>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-person-plus me-1"></i> Create User Account
+                                    </a>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
+                            <?php
+                            // Fetch user data if not already available
+                            if (!isset($user_data)) {
+                                $userModel = new \App\Models\UserModel();
+                                $user_data = $userModel->find($employee['user_id']);
+                            }
+                            ?>
+                            <?php if ($user_data): ?>
+                            <div class="table-responsive">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th width="25%" class="text-secondary">Username</th>
+                                        <td class="fw-medium"><?= $user_data['username'] ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-secondary">Email</th>
+                                        <td class="fw-medium"><?= $user_data['email'] ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-secondary">Role</th>
+                                        <td>
+                                            <span class="badge bg-primary rounded-pill">Employee</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-secondary">Account Created</th>
+                                        <td><?= date('d F Y, h:i A', strtotime($user_data['created_at'])) ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-secondary">Last Updated</th>
+                                        <td><?= $user_data['updated_at'] ? date('d F Y, h:i A', strtotime($user_data['updated_at'])) : 'Never' ?></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <?php else: ?>
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> User record found in employee data but could not be retrieved.
+                            </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
 
                 <div class="card mb-4">
                     <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">

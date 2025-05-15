@@ -4,6 +4,7 @@ use App\Models\EmployeeModel;
 use App\Models\CompensationModel;
 use App\Models\CompanyModel;
 use App\Models\PayslipModel;
+use App\Models\CurrencyModel; // Added CurrencyModel
 
 class CompensationController extends BaseController
 {
@@ -11,6 +12,7 @@ class CompensationController extends BaseController
     protected $compensationModel;
     protected $companyModel;
     protected $payslipModel;
+    protected $currencyModel; // Added currencyModel
     
     public function __construct()
     {
@@ -18,6 +20,7 @@ class CompensationController extends BaseController
         $this->compensationModel = new CompensationModel();
         $this->companyModel = new CompanyModel();
         $this->payslipModel = new PayslipModel();
+        $this->currencyModel = new CurrencyModel(); // Initialize currencyModel
     }
     
     public function index()
@@ -31,26 +34,29 @@ class CompensationController extends BaseController
         if (session()->get('role_id') == 1) {
             // Admin - can see all compensation records
             $compensations = $this->compensationModel
-                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name')
+                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name, currencies.currency_symbol, currencies.currency_code')
                 ->join('employees', 'employees.id = compensation.employee_id')
                 ->join('companies', 'companies.id = employees.company_id')
+                ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
                 ->orderBy('compensation.effective_date', 'DESC')
                 ->findAll();
         } else if (session()->get('role_id') == 2) {
             // Company Manager - can only see records for their company
             $compensations = $this->compensationModel
-                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name')
+                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name, currencies.currency_symbol, currencies.currency_code')
                 ->join('employees', 'employees.id = compensation.employee_id')
                 ->join('companies', 'companies.id = employees.company_id')
+                ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
                 ->where('employees.company_id', session()->get('company_id'))
                 ->orderBy('compensation.effective_date', 'DESC')
                 ->findAll();
         } else {
             // Sub-Account - can only see records for their active company
             $compensations = $this->compensationModel
-                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name')
+                ->select('compensation.*, employees.first_name, employees.last_name, employees.id as emp_id, companies.name as company_name, currencies.currency_symbol, currencies.currency_code')
                 ->join('employees', 'employees.id = compensation.employee_id')
                 ->join('companies', 'companies.id = employees.company_id')
+                ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
                 ->where('employees.company_id', session()->get('active_company_id'))
                 ->orderBy('compensation.effective_date', 'DESC')
                 ->findAll();
@@ -66,8 +72,8 @@ class CompensationController extends BaseController
 
     public function view($compensationId)
     {
-        // Get the compensation record
-        $compensation = $this->compensationModel->find($compensationId);
+        // Get the compensation record with currency info
+        $compensation = $this->compensationModel->getWithCurrency($compensationId);
         
         if (empty($compensation)) {
             return redirect()->to('/employees')->with('error', 'Compensation record not found');
@@ -136,9 +142,13 @@ class CompensationController extends BaseController
             }
         }
         
+        // Get active currencies
+        $currencies = $this->currencyModel->getActiveCurrencies();
+        
         $data = [
             'title' => 'Add Compensation',
             'employee' => $employee,
+            'currencies' => $currencies, // Pass currencies to the view
             'validation' => \Config\Services::validation()
         ];
         
@@ -160,6 +170,7 @@ class CompensationController extends BaseController
         // Validation
         $rules = [
             'effective_date' => 'required|valid_date',
+            'currency_id' => 'required|numeric',
         ];
         
         if (!$this->validate($rules)) {
@@ -178,7 +189,8 @@ class CompensationController extends BaseController
             'eis_employee' => $this->request->getVar('eis_employee'),
             'pcb' => $this->request->getVar('pcb'),
             'effective_date' => $this->request->getVar('effective_date'),
-            'created_by' => session()->get('user_id')
+            'created_by' => session()->get('user_id'),
+            'currency_id' => $this->request->getVar('currency_id')
         ];
         
         // Save compensation
@@ -217,19 +229,16 @@ class CompensationController extends BaseController
         $data = [
             'title' => 'Compensation History',
             'employee' => $employee,
-            'history' => $this->compensationModel->where('employee_id', $employeeId)
-                                            ->orderBy('effective_date', 'DESC')
-                                            ->findAll()
+            'history' => $this->compensationModel->getHistoryWithCurrency($employeeId)
         ];
         
         return view('compensation/history', $data);
     }
     
-    // You can also add an edit method here
     public function edit($compensationId)
     {
-        // Get the compensation record
-        $compensation = $this->compensationModel->find($compensationId);
+        // Get the compensation record with currency info
+        $compensation = $this->compensationModel->getWithCurrency($compensationId);
         
         if (empty($compensation)) {
             return redirect()->to('/employees')->with('error', 'Compensation record not found');
@@ -250,10 +259,22 @@ class CompensationController extends BaseController
             }
         }
         
+        // Get currencies - include both active currencies and the current one if inactive
+        $currencies = $this->currencyModel->getActiveCurrencies();
+        $currentCurrency = $this->currencyModel->find($compensation['currency_id']);
+        
+        if ($currentCurrency && $currentCurrency['status'] == 'inactive' && 
+            !array_filter($currencies, function($c) use ($currentCurrency) { 
+                return $c['id'] == $currentCurrency['id']; 
+            })) {
+            $currencies[] = $currentCurrency;
+        }
+        
         $data = [
             'title' => 'Edit Compensation',
             'compensation' => $compensation,
             'employee' => $employee,
+            'currencies' => $currencies,
             'validation' => \Config\Services::validation()
         ];
         
@@ -284,6 +305,7 @@ class CompensationController extends BaseController
         // Validation
         $rules = [
             'effective_date' => 'required|valid_date',
+            'currency_id' => 'required|numeric',
         ];
         
         if (!$this->validate($rules)) {
@@ -302,7 +324,8 @@ class CompensationController extends BaseController
             'eis_employee' => $this->request->getVar('eis_employee'),
             'pcb' => $this->request->getVar('pcb'),
             'effective_date' => $this->request->getVar('effective_date'),
-            'updated_by' => session()->get('user_id')
+            'updated_by' => session()->get('user_id'),
+            'currency_id' => $this->request->getVar('currency_id')
         ];
         
         // Update compensation
@@ -344,12 +367,14 @@ class CompensationController extends BaseController
             }
         }
         
+        // Get currency options
+        $currencies = $this->currencyModel->getActiveCurrencies();
+        
         $data = [
             'title' => 'Generate Payslip',
             'employee' => $this->employeeModel->find($employeeId),
-            'compensation' => $this->compensationModel->where('employee_id', $employeeId)
-                                              ->orderBy('effective_date', 'DESC')
-                                              ->first(),
+            'compensation' => $this->compensationModel->getWithCurrency($employeeId),
+            'currencies' => $currencies,
             'validation' => \Config\Services::validation()
         ];
         
@@ -380,7 +405,8 @@ class CompensationController extends BaseController
             'month' => 'required',
             'year' => 'required|numeric',
             'working_days' => 'required|numeric',
-            'pay_date' => 'required|valid_date'
+            'pay_date' => 'required|valid_date',
+            'currency_id' => 'required|numeric'
         ];
         
         if (!$this->validate($rules)) {
@@ -389,14 +415,13 @@ class CompensationController extends BaseController
         
         $employee = $this->employeeModel->find($employeeId);
         $company = $this->companyModel->find($employee['company_id']);
-        $compensation = $this->compensationModel->where('employee_id', $employeeId)
-                                           ->orderBy('effective_date', 'DESC')
-                                           ->first();
+        $compensation = $this->compensationModel->getWithCurrency($employeeId);
         
         $month = $this->request->getVar('month');
         $year = $this->request->getVar('year');
         $workingDays = $this->request->getVar('working_days');
         $payDate = $this->request->getVar('pay_date');
+        $currencyId = $this->request->getVar('currency_id');
         
         // Calculate total earnings and deductions
         $basicPay = $compensation['monthly_salary'] ?? 0;
@@ -441,7 +466,8 @@ class CompensationController extends BaseController
             'pay_date' => $payDate,
             'working_days' => $workingDays,
             'generated_by' => session()->get('user_id'),
-            'status' => 'generated'
+            'status' => 'generated',
+            'currency_id' => $currencyId
         ];
         
         $payslipId = $payslipModel->insert($payslipData);

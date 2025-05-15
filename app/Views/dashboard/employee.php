@@ -151,7 +151,20 @@
                 <div class="list-group list-group-flush border-top pt-3">
                     <div class="list-group-item px-0 py-2 d-flex justify-content-between">
                         <span class="text-muted">Employee ID</span>
-                        <span class="fw-medium"><?= str_pad($employee['id'], 5, '0', STR_PAD_LEFT) ?></span>
+                        <p class="form-control-static fw-medium">
+                            <?php 
+                            // Get company prefix
+                            $companyModel = new \App\Models\CompanyModel();
+                            $company = $companyModel->find($employee['company_id']);
+                            $prefix = $company['prefix'] ?? '';
+                            
+                            if (!empty($prefix)) {
+                                echo $prefix . '-' . str_pad($employee['id'], 4, '0', STR_PAD_LEFT);
+                            } else {
+                                echo str_pad($employee['id'], 4, '0', STR_PAD_LEFT);
+                            }
+                            ?>
+                        </p>
                     </div>
                     <div class="list-group-item px-0 py-2 d-flex justify-content-between">
                         <span class="text-muted">Department</span>

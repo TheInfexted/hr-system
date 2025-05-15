@@ -18,9 +18,9 @@ class UserModel extends Model
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
     
-    protected $validationRules    = [
-        'username' => 'required|min_length[3]|is_unique[users.username,id,{id}]',
-        'email'    => 'required|valid_email|is_unique[users.email,id,{id}]',
+    protected $validationRules = [
+        'username' => 'required|min_length[3]',
+        'email'    => 'required|valid_email',
         'password' => 'required|min_length[8]',
         'role_id'  => 'required|numeric'
     ];
@@ -52,5 +52,23 @@ class UserModel extends Model
         $data['data']['password'] = password_hash($data['data']['password'], PASSWORD_DEFAULT);
         
         return $data;
+    }
+    
+    public function isUsernameUnique(string $username, ?int $excludeId = null): bool
+    {
+        $builder = $this->builder()->where('username', $username);
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
+        }
+        return $builder->countAllResults() === 0;
+    }
+    
+    public function isEmailUnique(string $email, ?int $excludeId = null): bool
+    {
+        $builder = $this->builder()->where('email', $email);
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
+        }
+        return $builder->countAllResults() === 0;
     }
 }

@@ -17,6 +17,16 @@
             <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
         <?php endif; ?>
         
+        <?php if(session()->getFlashdata('info')): ?>
+            <div class="alert alert-info"><?= session()->getFlashdata('info') ?></div>
+        <?php endif; ?>
+        
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i> 
+            <strong>Note:</strong> This page only manages Admin, Company Manager, and Sub-Account users. 
+            Employee user accounts are managed through each employee's profile page.
+        </div>
+        
         <div class="table-responsive">
             <table id="users-table" class="table table-striped table-bordered" width="100%">
                 <thead>

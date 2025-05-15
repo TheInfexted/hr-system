@@ -1,4 +1,3 @@
-<!-- app/Views/profile/index.php -->
 <?= $this->extend('main') ?>
 
 <?= $this->section('content') ?>
@@ -21,7 +20,22 @@
                     </tr>
                     <tr>
                         <th>Employee ID</th>
-                        <td><?= str_pad($employee['id'], 5, '0', STR_PAD_LEFT) ?></td>
+                        <td>                        
+                        <p class="form-control-static fw-medium">
+                            <?php 
+                            // Get company prefix
+                            $companyModel = new \App\Models\CompanyModel();
+                            $company = $companyModel->find($employee['company_id']);
+                            $prefix = $company['prefix'] ?? '';
+                            
+                            if (!empty($prefix)) {
+                                echo $prefix . '-' . str_pad($employee['id'], 4, '0', STR_PAD_LEFT);
+                            } else {
+                                echo str_pad($employee['id'], 4, '0', STR_PAD_LEFT);
+                            }
+                            ?>
+                        </p>
+                        </td>
                     </tr>
                     <tr>
                         <th>Email</th>
@@ -92,6 +106,17 @@
                     <tr>
                         <th>Account Email</th>
                         <td><?= $user['email'] ?></td>
+                    </tr>
+                    <tr>
+                        <th>Role</th>
+                        <td><span class="badge bg-primary">Employee</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-center">
+                            <a href="<?= base_url('profile/edit-credentials') ?>" class="btn btn-primary">
+                                <i class="bi bi-pencil-square me-2"></i>Update My Credentials
+                            </a>
+                        </td>
                     </tr>
                 </table>
             </div>

@@ -16,7 +16,8 @@ class PayslipModel extends Model
         'employee_id', 'month', 'year', 'basic_pay', 'allowance', 
         'overtime', 'epf_employee', 'socso_employee', 'eis_employee', 
         'pcb', 'total_earnings', 'total_deductions', 'net_pay', 
-        'pay_date', 'working_days', 'generated_by', 'status', 'remarks'
+        'pay_date', 'working_days', 'generated_by', 'status', 'remarks',
+        'currency_id' // Added currency_id field
     ];
     
     protected $useTimestamps = true;
@@ -31,6 +32,7 @@ class PayslipModel extends Model
         'total_earnings'   => 'required|numeric',
         'total_deductions' => 'required|numeric',
         'net_pay'          => 'required|numeric',
+        'currency_id'      => 'required|numeric' // Added validation rule
     ];
     
     protected $validationMessages = [
@@ -48,6 +50,10 @@ class PayslipModel extends Model
         'pay_date' => [
             'required'   => 'Pay date is required',
             'valid_date' => 'Please enter a valid date'
+        ],
+        'currency_id' => [
+            'required' => 'Currency is required',
+            'numeric' => 'Currency ID must be a number'
         ]
     ];
     
@@ -106,21 +112,38 @@ class PayslipModel extends Model
             'working_days'     => $data['working_days'] ?? 0,
             'generated_by'     => $data['generated_by'],
             'status'           => 'generated',
+            'currency_id'      => $data['currency_id'] ?? 1, // Default to ID 1 if not provided
         ];
         
         return $this->insert($payslipData);
     }
     
     /**
-     * Get payslips for a specific employee
+     * Get payslips for a specific employee with currency information
      *
      * @param int $employeeId
      * @return array
      */
     public function getEmployeePayslips($employeeId)
     {
-        return $this->where('employee_id', $employeeId)
+        return $this->select('payslips.*, currencies.currency_symbol, currencies.currency_code')
+                    ->join('currencies', 'currencies.id = payslips.currency_id', 'left')
+                    ->where('payslips.employee_id', $employeeId)
                     ->orderBy('year DESC, month DESC')
                     ->findAll();
+    }
+    
+    /**
+     * Get payslip with currency information
+     *
+     * @param int $payslipId
+     * @return array
+     */
+    public function getWithCurrency($payslipId)
+    {
+        return $this->select('payslips.*, currencies.currency_symbol, currencies.currency_code')
+                    ->join('currencies', 'currencies.id = payslips.currency_id', 'left')
+                    ->where('payslips.id', $payslipId)
+                    ->first();
     }
 }

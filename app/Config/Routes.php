@@ -36,6 +36,9 @@ $routes->get('companies', 'CompanyController::index', ['filter' => 'auth:view_co
 $routes->get('companies/create', 'CompanyController::create', ['filter' => 'auth:create_companies']);
 $routes->get('companies/edit/(:num)', 'CompanyController::edit/$1', ['filter' => 'auth:edit_companies']);
 $routes->get('profile', 'ProfileController::index', ['filter' => 'auth']);
+$routes->get('profile/edit-credentials', 'ProfileController::editCredentials', ['filter' => 'auth:clock_attendance']);
+$routes->get('profile/manage-employee-user/(:num)', 'ProfileController::manageEmployeeUser/$1', ['filter' => 'auth:edit_users']);
+$routes->get('profile/delete-employee-user/(:num)', 'ProfileController::deleteEmployeeUser/$1', ['filter' => 'auth:delete_users']);
 $routes->get('permissions', 'PermissionController::index', ['filter' => 'auth:1']);
 $routes->get('permissions/edit/(:num)', 'PermissionController::edit/$1', ['filter' => 'auth:1']);
 $routes->get('acknowledgments', 'AcknowledgmentController::index', ['filter' => 'auth:2']);
@@ -82,6 +85,10 @@ $routes->post('permissions/update/(:num)', 'PermissionController::update/$1', ['
 
 // Authentication Routes
 $routes->post('login', 'AuthController::authenticate');
+
+// Profile Routes
+$routes->post('profile/update-credentials', 'ProfileController::updateCredentials', ['filter' => 'auth:clock_attendance']);
+$routes->post('profile/update-employee-user/(:num)', 'ProfileController::updateEmployeeUser/$1', ['filter' => 'auth:edit_users']);
 
 // Acknowledgment Routes
 $routes->post('acknowledgments/grant', 'AcknowledgmentController::grantAccess', ['filter' => 'auth:2']);
