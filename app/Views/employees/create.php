@@ -19,6 +19,59 @@
         <form action="<?= base_url('employees/create') ?>" method="post" enctype="multipart/form-data">
             <?= csrf_field() ?>
             
+            
+            <!-- Company Information -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-building me-2"></i>Company Information</h5>
+                </div>
+                <div class="col-md-6">
+                    <label for="company_id" class="form-label">Company <span class="text-danger">*</span></label>
+                    <select class="form-select <?= (isset($validation) && $validation->hasError('company_id')) ? 'is-invalid' : '' ?>" id="company_id" name="company_id">
+                        <option value="">Select Company</option>
+                        <?php foreach($companies as $company): ?>
+                            <option value="<?= $company['id'] ?>" <?= old('company_id') == $company['id'] ? 'selected' : '' ?>>
+                                <?= $company['name'] ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if(isset($validation) && $validation->hasError('company_id')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('company_id') ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="col-md-6">
+                    <label for="hire_date" class="form-label">Hire Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('hire_date')) ? 'is-invalid' : '' ?>" id="hire_date" name="hire_date" value="<?= old('hire_date', date('Y-m-d')) ?>">
+                    <?php if(isset($validation) && $validation->hasError('hire_date')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('hire_date') ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Compensation Information -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-currency-dollar me-2"></i>Compensation Information</h5>
+                </div>
+                <div class="col-md-6">
+                    <label for="hourly_rate" class="form-label">Hourly Rate</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" value="<?= old('hourly_rate') ?>">
+                    </div>
+                    <small class="text-muted">Leave blank if not applicable</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="monthly_salary" class="form-label">Monthly Salary</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" value="<?= old('monthly_salary') ?>">
+                    </div>
+                    <small class="text-muted">Leave blank if not applicable</small>
+                </div>
+            </div>
+            
+            <!-- Personal Information -->
             <div class="row g-3 mb-4">
                 <div class="col-12">
                     <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-person-lines-fill me-2"></i>Personal Information</h5>
@@ -35,6 +88,24 @@
                     <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('last_name')) ? 'is-invalid' : '' ?>" id="last_name" name="last_name" value="<?= old('last_name') ?>">
                     <?php if(isset($validation) && $validation->hasError('last_name')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('last_name') ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="col-md-6">
+                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('date_of_birth')) ? 'is-invalid' : '' ?>" id="date_of_birth" name="date_of_birth" value="<?= old('date_of_birth') ?>">
+                    <?php if(isset($validation) && $validation->hasError('date_of_birth')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('date_of_birth') ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="col-md-6">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select <?= (isset($validation) && $validation->hasError('status')) ? 'is-invalid' : '' ?>" id="status" name="status">
+                        <option value="Active" <?= old('status') == 'Active' ? 'selected' : '' ?>>Active</option>
+                        <option value="On Leave" <?= old('status') == 'On Leave' ? 'selected' : '' ?>>On Leave</option>
+                        <option value="Terminated" <?= old('status') == 'Terminated' ? 'selected' : '' ?>>Terminated</option>
+                    </select>
+                    <?php if(isset($validation) && $validation->hasError('status')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('status') ?></div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -56,7 +127,7 @@
                     <?php endif; ?>
                 </div>
                 <div class="col-md-6">
-                    <label for="id_number" class="form-label">ID Number</label>
+                    <label for="id_number" class="form-label">ID Number <span class="text-danger">*</span></label>
                     <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('id_number')) ? 'is-invalid' : '' ?>" id="id_number" name="id_number" value="<?= old('id_number') ?>">
                     <small id="idHelpText" class="form-text text-muted">For NRIC, enter 12 digits. For Passport, enter alphanumeric value.</small>
                     <?php if(isset($validation) && $validation->hasError('id_number')): ?>
@@ -70,7 +141,7 @@
                 <div class="col-md-12">
                     <div class="card border bg-light">
                         <div class="card-body">
-                            <h6 class="card-title"><i class="bi bi-passport me-2"></i>Passport Scan</h6>
+                            <h6 class="card-title"><i class="bi bi-passport me-2"></i>Passport Scan <span class="text-danger">*</span></h6>
                             <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('passport_file')) ? 'is-invalid' : '' ?>" id="passport_file" name="passport_file">
                             <small class="text-muted">Upload a clear scan or photo of the passport (JPG, PNG or PDF, max 2MB)</small>
                             <?php if(isset($validation) && $validation->hasError('passport_file')): ?>
@@ -85,7 +156,7 @@
                 <div class="col-md-6">
                     <div class="card border bg-light">
                         <div class="card-body">
-                            <h6 class="card-title"><i class="bi bi-card-image me-2"></i>NRIC Front</h6>
+                            <h6 class="card-title"><i class="bi bi-card-image me-2"></i>NRIC Front <span class="text-danger">*</span></h6>
                             <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('nric_front')) ? 'is-invalid' : '' ?>" id="nric_front" name="nric_front">
                             <small class="text-muted">Front side of NRIC (JPG, PNG or PDF, max 2MB)</small>
                             <?php if(isset($validation) && $validation->hasError('nric_front')): ?>
@@ -97,7 +168,7 @@
                 <div class="col-md-6">
                     <div class="card border bg-light">
                         <div class="card-body">
-                            <h6 class="card-title"><i class="bi bi-card-image me-2"></i>NRIC Back</h6>
+                            <h6 class="card-title"><i class="bi bi-card-image me-2"></i>NRIC Back <span class="text-danger">*</span></h6>
                             <input type="file" class="form-control <?= (isset($validation) && $validation->hasError('nric_back')) ? 'is-invalid' : '' ?>" id="nric_back" name="nric_back">
                             <small class="text-muted">Back side of NRIC (JPG, PNG or PDF, max 2MB)</small>
                             <?php if(isset($validation) && $validation->hasError('nric_back')): ?>
@@ -153,20 +224,20 @@
                     <?php endif; ?>
                 </div>
                 <div class="col-md-6">
-                    <label for="phone" class="form-label">Phone</label>
+                    <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
                     <div class="input-group">
                         <select class="form-select flex-grow-0" style="max-width: 150px; min-width: 120px;" id="country_code" name="country_code">
-                            <option value="+60" <?= old('country_code') == '+60' ? 'selected' : '' ?>>+60 (Malaysia)</option>
-                            <option value="+65" <?= old('country_code') == '+65' ? 'selected' : '' ?>>+65 (Singapore)</option>
-                            <option value="+62" <?= old('country_code') == '+62' ? 'selected' : '' ?>>+62 (Indonesia)</option>
-                            <option value="+66" <?= old('country_code') == '+66' ? 'selected' : '' ?>>+66 (Thailand)</option>
-                            <option value="+63" <?= old('country_code') == '+63' ? 'selected' : '' ?>>+63 (Philippines)</option>
-                            <option value="+84" <?= old('country_code') == '+84' ? 'selected' : '' ?>>+84 (Vietnam)</option>
-                            <option value="+1" <?= old('country_code') == '+1' ? 'selected' : '' ?>>+1 (US/Canada)</option>
-                            <option value="+44" <?= old('country_code') == '+44' ? 'selected' : '' ?>>+44 (UK)</option>
-                            <option value="+86" <?= old('country_code') == '+86' ? 'selected' : '' ?>>+86 (China)</option>
-                            <option value="+91" <?= old('country_code') == '+91' ? 'selected' : '' ?>>+91 (India)</option>
-                            <option value="+61" <?= old('country_code') == '+61' ? 'selected' : '' ?>>+61 (Australia)</option>
+                            <option value="+60" <?= old('country_code') == '+60' ? 'selected' : '' ?>>🇲🇾 +60</option>
+                            <option value="+65" <?= old('country_code') == '+65' ? 'selected' : '' ?>>🇸🇬 +65</option>
+                            <option value="+62" <?= old('country_code') == '+62' ? 'selected' : '' ?>>🇮🇩 +62</option>
+                            <option value="+66" <?= old('country_code') == '+66' ? 'selected' : '' ?>>🇹🇭 +66</option>
+                            <option value="+63" <?= old('country_code') == '+63' ? 'selected' : '' ?>>🇵🇭 +63</option>
+                            <option value="+84" <?= old('country_code') == '+84' ? 'selected' : '' ?>>🇻🇳 +84</option>
+                            <option value="+1" <?= old('country_code') == '+1' ? 'selected' : '' ?>>🇺🇸 +1</option>
+                            <option value="+44" <?= old('country_code') == '+44' ? 'selected' : '' ?>>🇬🇧 +44</option>
+                            <option value="+86" <?= old('country_code') == '+86' ? 'selected' : '' ?>>🇨🇳 +86</option>
+                            <option value="+91" <?= old('country_code') == '+91' ? 'selected' : '' ?>>🇮🇳 +91</option>
+                            <option value="+61" <?= old('country_code') == '+61' ? 'selected' : '' ?>>🇦🇺 +61</option>
                         </select>
                         <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('phone')) ? 'is-invalid' : '' ?>" id="phone" name="phone" value="<?= old('phone') ?>" placeholder="Phone number without country code">
                         <?php if(isset($validation) && $validation->hasError('phone')): ?>
@@ -194,73 +265,6 @@
                     <?php if(isset($validation) && $validation->hasError('emergency_contact')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('emergency_contact') ?></div>
                     <?php endif; ?>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label for="date_of_birth" class="form-label">Date of Birth</label>
-                    <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('date_of_birth')) ? 'is-invalid' : '' ?>" id="date_of_birth" name="date_of_birth" value="<?= old('date_of_birth') ?>">
-                    <?php if(isset($validation) && $validation->hasError('date_of_birth')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('date_of_birth') ?></div>
-                    <?php endif; ?>
-                </div>
-                <div class="col-md-6">
-                    <label for="hire_date" class="form-label">Hire Date <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('hire_date')) ? 'is-invalid' : '' ?>" id="hire_date" name="hire_date" value="<?= old('hire_date', date('Y-m-d')) ?>">
-                    <?php if(isset($validation) && $validation->hasError('hire_date')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('hire_date') ?></div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label for="company_id" class="form-label">Company <span class="text-danger">*</span></label>
-                    <select class="form-select <?= (isset($validation) && $validation->hasError('company_id')) ? 'is-invalid' : '' ?>" id="company_id" name="company_id">
-                        <option value="">Select Company</option>
-                        <?php foreach($companies as $company): ?>
-                            <option value="<?= $company['id'] ?>" <?= old('company_id') == $company['id'] ? 'selected' : '' ?>>
-                                <?= $company['name'] ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if(isset($validation) && $validation->hasError('company_id')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('company_id') ?></div>
-                    <?php endif; ?>
-                </div>
-                <div class="col-md-6">
-                    <label for="status" class="form-label">Status</label>
-                    <select class="form-select <?= (isset($validation) && $validation->hasError('status')) ? 'is-invalid' : '' ?>" id="status" name="status">
-                        <option value="Active" <?= old('status') == 'Active' ? 'selected' : '' ?>>Active</option>
-                        <option value="On Leave" <?= old('status') == 'On Leave' ? 'selected' : '' ?>>On Leave</option>
-                        <option value="Terminated" <?= old('status') == 'Terminated' ? 'selected' : '' ?>>Terminated</option>
-                    </select>
-                    <?php if(isset($validation) && $validation->hasError('status')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('status') ?></div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <div class="col-12">
-                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-currency-dollar me-2"></i>Compensation Information</h5>
-                </div>
-                <div class="col-md-6">
-                    <label for="hourly_rate" class="form-label">Hourly Rate</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" value="<?= old('hourly_rate') ?>">
-                    </div>
-                    <small class="text-muted">Leave blank if not applicable</small>
-                </div>
-                <div class="col-md-6">
-                    <label for="monthly_salary" class="form-label">Monthly Salary</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" value="<?= old('monthly_salary') ?>">
-                    </div>
-                    <small class="text-muted">Leave blank if not applicable</small>
                 </div>
             </div>
             

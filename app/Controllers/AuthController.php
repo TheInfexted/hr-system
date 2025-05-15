@@ -55,11 +55,15 @@ class AuthController extends BaseController
                     'username' => $user['username'],
                     'email' => $user['email'],
                     'role_id' => $user['role_id'],
-                    'company_id' => $user['company_id'],
                     'permissions' => $permissions,
                     'logged_in' => TRUE,
-                    'created_at' => date('Y-m-d H:i:s') // Add session creation timestamp
+                    'created_at' => date('Y-m-d H:i:s')
                 ];
+                
+                // Only set company_id for non-admin users
+                if ($user['role_id'] != 1) {
+                    $sessionData['company_id'] = $user['company_id'];
+                }
                 
                 // For sub-accounts, check if they have acknowledged companies
                 if ($user['role_id'] == 3) {

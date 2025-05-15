@@ -53,6 +53,55 @@ class EventModel extends Model
     protected $skipValidation = false;
     
     /**
+     * Check and update event statuses based on current time
+     * 
+     * @return int Number of events updated
+     */
+    public function updateEventStatuses()
+    {
+        $now = date('Y-m-d H:i:s');
+        $currentDate = date('Y-m-d');
+        $currentTime = date('H:i:s');
+        
+        // Find active events that have ended
+        $builder = $this->builder();
+        $builder->where('status', 'active');
+        
+        // Events with end_date in the past
+        $builder->groupStart();
+        
+        // Events with end date before today
+        $builder->where('end_date <', $currentDate);
+        
+        // Or events ending today with end_time in the past (if end_time exists)
+        $builder->orGroupStart();
+        $builder->where('end_date', $currentDate);
+        $builder->where('end_time <', $currentTime);
+        $builder->where('end_time !=', null); // Only if end_time exists
+        $builder->groupEnd();
+        
+        // Or events ending today without specified end_time (consider them ended at end of day)
+        $builder->orGroupStart();
+        $builder->where('end_date <', $currentDate);
+        $builder->where('end_time', null);
+        $builder->groupEnd();
+        
+        $builder->groupEnd();
+        
+        // Get events that need to be updated
+        $events = $builder->get()->getResult();
+        
+        // Update status to completed
+        $count = 0;
+        foreach ($events as $event) {
+            $this->update($event->id, ['status' => 'completed']);
+            $count++;
+        }
+        
+        return $count;
+    }
+    
+    /**
      * Get events for a specific company
      *
      * @param int $companyId
@@ -60,6 +109,9 @@ class EventModel extends Model
      */
     public function getCompanyEvents($companyId)
     {
+        // First update event statuses
+        $this->updateEventStatuses();
+        
         return $this->where('company_id', $companyId)
                     ->orderBy('start_date', 'ASC')
                     ->orderBy('start_time', 'ASC') // Added ordering by time
@@ -75,6 +127,9 @@ class EventModel extends Model
      */
     public function getUpcomingEvents($companyId, $limit = 5)
     {
+        // First update event statuses
+        $this->updateEventStatuses();
+        
         $currentDate = date('Y-m-d');
         
         // We want events that:
@@ -138,6 +193,9 @@ class EventModel extends Model
      */
     public function getEventsWithCreator($id = null)
     {
+        // First update event statuses
+        $this->updateEventStatuses();
+        
         $builder = $this->db->table('events')
                            ->select('events.*, users.username as created_by_name, companies.name as company_name')
                            ->join('users', 'users.id = events.created_by')
@@ -163,5 +221,19 @@ class EventModel extends Model
         }
         
         return $events;
+    }
+    
+    /**
+     * Get all events with automatic status updates
+     * 
+     * @return array All events with updated statuses
+     */
+    public function getAllEvents()
+    {
+        // First update event statuses
+        $this->updateEventStatuses();
+        
+        // Then return all events
+        return $this->findAll();
     }
 }

@@ -26,6 +26,16 @@
             </div>
             
             <div class="mb-3">
+                <label for="prefix" class="form-label">Company Prefix <span class="text-danger">*</span></label>
+                <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('prefix')) ? 'is-invalid' : '' ?>" 
+                       id="prefix" name="prefix" value="<?= old('prefix', $company['prefix'] ?? '') ?>" maxlength="5">
+                <div class="form-text">The prefix will be used for employee IDs (e.g., "ABC-0001")</div>
+                <?php if(isset($validation) && $validation->hasError('prefix')): ?>
+                    <div class="invalid-feedback"><?= $validation->getError('prefix') ?></div>
+                <?php endif; ?>
+            </div>
+            
+            <div class="mb-3">
                 <label for="ssm_number" class="form-label">SSM Number</label>
                 <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('ssm_number')) ? 'is-invalid' : '' ?>" 
                     id="ssm_number" name="ssm_number" value="<?= old('ssm_number', $company['ssm_number']) ?>">
@@ -90,6 +100,30 @@
                 hasErrors = true;
             } else {
                 nameField.classList.remove('is-invalid');
+            }
+            
+            // Validate company prefix
+            const prefixField = document.getElementById('prefix');
+            if (!prefixField.value.trim() || prefixField.value.trim().length < 2) {
+                prefixField.classList.add('is-invalid');
+                if (!prefixField.nextElementSibling || !prefixField.nextElementSibling.classList.contains('invalid-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.classList.add('invalid-feedback');
+                    feedback.textContent = 'Company prefix is required and must be at least 2 characters long';
+                    prefixField.parentNode.insertBefore(feedback, prefixField.nextSibling);
+                }
+                hasErrors = true;
+            } else if (!/^[a-zA-Z0-9]+$/.test(prefixField.value.trim())) {
+                prefixField.classList.add('is-invalid');
+                if (!prefixField.nextElementSibling || !prefixField.nextElementSibling.classList.contains('invalid-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.classList.add('invalid-feedback');
+                    feedback.textContent = 'Company prefix can only contain letters and numbers';
+                    prefixField.parentNode.insertBefore(feedback, prefixField.nextSibling);
+                }
+                hasErrors = true;
+            } else {
+                prefixField.classList.remove('is-invalid');
             }
             
             // Validate email format if provided

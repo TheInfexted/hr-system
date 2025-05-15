@@ -61,10 +61,11 @@
                 </div>
                 
                 <?php if(session()->get('role_id') == 1 || has_permission('create_companies')): ?>
-                <div class="col-md-6">
+                <div class="col-md-6 company-field" <?= old('role_id', $user['role_id']) == 1 ? 'style="display:none;"' : '' ?>>
                     <label for="company_id" class="form-label">Company</label>
                     <select class="form-select <?= (isset($validation) && $validation->hasError('company_id')) ? 'is-invalid' : '' ?>" 
                            id="company_id" name="company_id">
+                        <option value="">Select Company</option>
                         <?php foreach($companies as $company): ?>
                             <option value="<?= $company['id'] ?>" <?= old('company_id', $user['company_id']) == $company['id'] ? 'selected' : '' ?>>
                                 <?= $company['name'] ?>
@@ -74,6 +75,13 @@
                     <?php if(isset($validation) && $validation->hasError('company_id')): ?>
                         <div class="invalid-feedback"><?= $validation->getError('company_id') ?></div>
                     <?php endif; ?>
+                </div>
+                
+                <div class="col-md-6 admin-message" <?= old('role_id', $user['role_id']) != 1 ? 'style="display:none;"' : '' ?>>
+                    <label class="form-label">Company</label>
+                    <div class="alert alert-info py-2 mb-0">
+                        <i class="bi bi-info-circle me-2"></i> Admin users don't require a company assignment
+                    </div>
                 </div>
                 <?php endif; ?>
             </div>
@@ -85,4 +93,27 @@
         </form>
     </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    // Toggle company field based on role selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.getElementById('role_id');
+        const companyField = document.querySelector('.company-field');
+        const adminMessage = document.querySelector('.admin-message');
+        
+        if (roleSelect && (companyField || adminMessage)) {
+            roleSelect.addEventListener('change', function() {
+                if (this.value == '1') { // Admin role
+                    if (companyField) companyField.style.display = 'none';
+                    if (adminMessage) adminMessage.style.display = 'block';
+                } else {
+                    if (companyField) companyField.style.display = 'block';
+                    if (adminMessage) adminMessage.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
 <?= $this->endSection() ?>

@@ -22,6 +22,14 @@
             </a>
             <?php endif; ?>
             
+            <?php if($payslip['status'] === 'generated' && has_permission('delete_payslips')): ?>
+            <a href="<?= base_url('payslips/admin/delete/' . $payslip['id']) ?>" 
+               class="btn btn-danger" 
+               onclick="return confirm('Are you sure you want to delete this payslip? This action cannot be undone.')">
+                <i class="bi bi-trash me-1"></i> Delete Payslip
+            </a>
+            <?php endif; ?>
+            
             <a href="<?= base_url('payslips/admin') ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-2"></i> Back to List
             </a>

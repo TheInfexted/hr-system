@@ -272,4 +272,57 @@ class PayslipController extends BaseController
         
         return redirect()->to('/payslips/admin/view/' . $payslipId)->with('success', 'Payslip has been cancelled.');
     }
+    
+    /**
+     * Delete a payslip
+     */
+    public function delete($payslipId)
+    {
+        helper('permission');
+        
+        // Check permissions
+        if (!has_permission('delete_payslips')) {
+            return redirect()->to('/payslips/admin')->with('error', 'Access denied. You do not have permission to delete payslips.');
+        }
+        
+        // Get the payslip
+        $payslip = $this->payslipModel->find($payslipId);
+        
+        if (empty($payslip)) {
+            return redirect()->to('/payslips/admin')->with('error', 'Payslip not found.');
+        }
+        
+        // Get the employee
+        $employee = $this->employeeModel->find($payslip['employee_id']);
+        
+        if (empty($employee)) {
+            return redirect()->to('/payslips/admin')->with('error', 'Employee not found.');
+        }
+        
+        // Security check based on role
+        if (session()->get('role_id') != 1) {
+            if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
+                return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+            } else if (session()->get('role_id') == 3) {
+                if (!session()->get('active_company_id') || $employee['company_id'] != session()->get('active_company_id')) {
+                    return redirect()->to('/payslips/admin')->with('error', 'Access denied.');
+                }
+            }
+        }
+        
+        // Only allow deleting of payslips with 'generated' status
+        if ($payslip['status'] !== 'generated') {
+            return redirect()->to('/payslips/admin/view/' . $payslipId)->with('error', 
+                'Only payslips with "Generated" status can be deleted. Please cancel the payslip instead.');
+        }
+        
+        try {
+            // Delete the payslip
+            $this->payslipModel->delete($payslipId);
+            return redirect()->to('/payslips/admin')->with('success', 'Payslip deleted successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Error deleting payslip: ' . $e->getMessage());
+            return redirect()->to('/payslips/admin')->with('error', 'An error occurred while deleting the payslip: ' . $e->getMessage());
+        }
+    }
 }

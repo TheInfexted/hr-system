@@ -29,7 +29,15 @@
                                 </tr>
                                 <tr>
                                     <th class="text-secondary">Employee ID</th>
-                                    <td class="fw-medium"><?= $employee['id'] ?? 'N/A' ?></td>
+                                    <td class="fw-medium">
+                                        <?php 
+                                        if (!empty($employee['company_prefix'])) {
+                                            echo $employee['company_prefix'] . '-' . str_pad($employee['id'], 4, '0', STR_PAD_LEFT);
+                                        } else {
+                                            echo str_pad($employee['id'], 4, '0', STR_PAD_LEFT);
+                                        }
+                                        ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th class="text-secondary">ID Type</th>

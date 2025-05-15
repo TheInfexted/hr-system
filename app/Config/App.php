@@ -17,7 +17,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'http://localhost/Julang-project/hr-system/public/';
+    public string $baseURL = 'https://insys.danhar.cc';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.

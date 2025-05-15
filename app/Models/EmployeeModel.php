@@ -58,7 +58,7 @@ class EmployeeModel extends Model
     public function getEmployeeWithCompany($id = null)
     {
         $builder = $this->db->table('employees');
-        $builder->select('employees.*, companies.name as company_name');
+        $builder->select('employees.*, companies.name as company_name, companies.prefix as company_prefix');
         $builder->join('companies', 'companies.id = employees.company_id', 'left');
         
         if ($id !== null) {

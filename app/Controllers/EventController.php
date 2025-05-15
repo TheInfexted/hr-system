@@ -24,6 +24,12 @@ class EventController extends BaseController
             return redirect()->to('/dashboard')->with('error', 'Please select an active company first');
         }
         
+        // Update event statuses before displaying
+        $updatedCount = $this->eventModel->updateEventStatuses();
+        if ($updatedCount > 0) {
+            log_message('info', 'Auto-updated status for ' . $updatedCount . ' events');
+        }
+        
         $data = [
             'title' => 'Events'
         ];
@@ -37,6 +43,9 @@ class EventController extends BaseController
     public function getEvents()
     {
         try {
+            // Update event statuses before retrieving events
+            $this->eventModel->updateEventStatuses();
+            
             $db = db_connect();
             $builder = $db->table('events')
                         ->select('events.*, companies.name as company')
@@ -278,6 +287,18 @@ class EventController extends BaseController
             }
         }
         
+        // Check if this event should be marked as completed already
+        $status = $this->request->getPost('status');
+        $now = date('Y-m-d H:i:s');
+        $currentDate = date('Y-m-d');
+        $currentTime = date('H:i:s');
+        
+        // If end date is in the past, mark as completed
+        if ($status === 'active' && ($endDate < $currentDate || 
+            ($endDate === $currentDate && !empty($endTime) && $endTime < $currentTime))) {
+            $status = 'completed';
+        }
+        
         // Prepare data
         $data = [
             'title' => $this->request->getPost('title'),
@@ -288,7 +309,7 @@ class EventController extends BaseController
             'end_time' => $endTime,
             'location' => $this->request->getPost('location'),
             'company_id' => $companyId,
-            'status' => $this->request->getPost('status'),
+            'status' => $status,
             'created_by' => session()->get('user_id')
         ];
         
@@ -303,6 +324,9 @@ class EventController extends BaseController
      */
     public function view($id)
     {
+        // First update event statuses to ensure we're showing current status
+        $this->eventModel->updateEventStatuses();
+        
         $event = $this->eventModel->getEventsWithCreator($id);
         
         if (empty($event)) {
@@ -355,6 +379,9 @@ class EventController extends BaseController
         if (!has_permission('edit_events')) {
             return redirect()->to('/events')->with('error', 'Access denied. You do not have permission to edit events.');
         }
+        
+        // Get the latest event status
+        $this->eventModel->updateEventStatuses();
         
         $event = $this->eventModel->find($id);
         
@@ -461,6 +488,23 @@ class EventController extends BaseController
             }
         }
         
+        // Get the posted status
+        $status = $this->request->getPost('status');
+        
+        // Only auto-update status if not cancelled
+        if ($status !== 'cancelled') {
+            // Check if this event should be marked as completed already
+            $now = date('Y-m-d H:i:s');
+            $currentDate = date('Y-m-d');
+            $currentTime = date('H:i:s');
+            
+            // If end date is in the past, mark as completed
+            if ($status === 'active' && ($endDate < $currentDate || 
+                ($endDate === $currentDate && !empty($endTime) && $endTime < $currentTime))) {
+                $status = 'completed';
+            }
+        }
+        
         // Prepare data
         $data = [
             'id' => $id,
@@ -472,7 +516,7 @@ class EventController extends BaseController
             'end_time' => $endTime,
             'location' => $this->request->getPost('location'),
             'company_id' => $companyId,
-            'status' => $this->request->getPost('status')
+            'status' => $status
         ];
         
         // Update event
@@ -521,6 +565,9 @@ class EventController extends BaseController
      */
     public function upcomingEvents()
     {
+        // First update event statuses
+        $this->eventModel->updateEventStatuses();
+        
         // Get company ID based on user role
         $companyId = null;
         

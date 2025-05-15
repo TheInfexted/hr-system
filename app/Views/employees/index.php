@@ -50,7 +50,7 @@
                 <thead class="table-light">
                     <tr>
                         <th width="5%">#</th>
-                        <th width="5%">ID</th>
+                        <th width="5%">Employee ID</th>
                         <th width="20%">Name</th>
                         <th width="20%">Email</th>
                         <th width="15%">Phone</th>
@@ -85,7 +85,7 @@ $(document).ready(function() {
                 className: 'text-center' 
             },
             { 
-                data: 'user_id',
+                data: 'emp_id',
                 className: 'text-center'
             },
             { 

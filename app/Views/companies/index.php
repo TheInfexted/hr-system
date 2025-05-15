@@ -23,6 +23,7 @@
                     <tr>
                         <th>No</th>
                         <th>Name</th>
+                        <th>Prefix</th>
                         <th>Contact Person</th>
                         <th>Email</th>
                         <th>Phone</th>
@@ -48,6 +49,7 @@ $(document).ready(function() {
         columns: [
             { data: 'no' },
             { data: 'name' },
+            { data: 'prefix' },
             { data: 'contact_person' },
             { data: 'contact_email' },
             { data: 'contact_phone' },

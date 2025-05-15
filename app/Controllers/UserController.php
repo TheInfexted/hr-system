@@ -3,6 +3,11 @@
 use App\Models\UserModel;
 use App\Models\RoleModel;
 use App\Models\CompanyModel;
+use App\Models\EmployeeModel;
+use App\Models\CompensationModel;
+use App\Models\AttendanceModel;
+use App\Models\UserPermissionModel;
+use App\Models\CompanyAcknowledgmentModel;
 
 class UserController extends BaseController
 {
@@ -104,10 +109,18 @@ class UserController extends BaseController
             $no = $start + 1;
     
             foreach ($result as $row) {
-                $actionButtons = '<div class="btn-group" role="group">
-                                  <a href="'.base_url('users/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>
-                                  <a href="'.base_url('users/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</a>
-                                </div>';
+                // Create action buttons based on user ID
+                $actionButtons = '<div class="btn-group" role="group">';
+                $actionButtons .= '<a href="'.base_url('users/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>';
+                
+                // Don't show delete button for system admin (ID 1)
+                if ($row->id != 1) {
+                    $actionButtons .= '<a href="'.base_url('users/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</a>';
+                } else {
+                    $actionButtons .= '<button class="btn btn-sm btn-secondary" disabled title="System admin cannot be deleted"><i class="bi bi-lock"></i> Delete</button>';
+                }
+                
+                $actionButtons .= '</div>';
                 
                 $data[] = [
                     'no' => $no++,
@@ -122,13 +135,14 @@ class UserController extends BaseController
     
             // Format the response for DataTables
             $response = [
-                'draw' => $draw,
+                'draw' => intval($draw),
                 'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $totalRecords,
                 'data' => $data
             ];
     
             return $this->response->setJSON($response);
+            
         } catch (\Exception $e) {
             log_message('error', 'Error in UserController::getUsers: ' . $e->getMessage());
             
@@ -195,9 +209,14 @@ class UserController extends BaseController
         ];
         
         // Set company_id based on role
-        if (session()->get('role_id') == 1) { // Admin
+        if ($roleId == 1) {
+            // Admin users don't need a company
+            $data['company_id'] = null;
+        } else if (session()->get('role_id') == 1) {
+            // Admin creating non-admin users can specify company
             $data['company_id'] = $this->request->getVar('company_id');
-        } else { // Company
+        } else {
+            // Company user creating other users assigns their company
             $data['company_id'] = session()->get('company_id');
         }
         
@@ -279,9 +298,13 @@ class UserController extends BaseController
         if (!empty($postData['password'])) {
             $data['password'] = password_hash($postData['password'], PASSWORD_DEFAULT);
         }
-        
+            
         // Set company_id based on role
-        if (session()->get('role_id') == 1 && isset($postData['company_id'])) {
+        if ($data['role_id'] == 1) {
+            // Admin users should have NULL company_id
+            $data['company_id'] = null;
+        } else if (session()->get('role_id') == 1 && isset($postData['company_id'])) {
+            // Admin user is updating a non-admin user
             $data['company_id'] = $postData['company_id'];
         }
         
@@ -308,6 +331,22 @@ class UserController extends BaseController
         // Don't allow deletion of own account
         if ($id == session()->get('user_id')) {
             return redirect()->to('/users')->with('error', 'You cannot delete your own account');
+        }
+        
+        // Prevent deletion of system admin account (user ID 1)
+        if ($id == 1) {
+            return redirect()->to('/users')->with('error', 'System admin account cannot be deleted for security reasons');
+        }
+        
+        // Check if user exists
+        $user = $this->userModel->find($id);
+        if (empty($user)) {
+            return redirect()->to('/users')->with('error', 'User not found');
+        }
+        
+        // Additional check for admin role (in case there are other admin users)
+        if ($user['role_id'] == 1 && session()->get('role_id') != 1) {
+            return redirect()->to('/users')->with('error', 'You cannot delete admin users');
         }
         
         $this->userModel->delete($id);

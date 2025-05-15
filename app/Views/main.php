@@ -7,7 +7,15 @@ helper('permission');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? 'HR System' ?></title>
+    <title><?= $title ?? 'Julang Network' ?></title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="<?= base_url('/favicon.ico') ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= base_url('favicon.ico') ?>" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/images/apple-touch-icon.png') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/images/favicon-32x32.png') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/images/favicon-16x16.png') ?>">
+    <link rel="manifest" href="<?= base_url('assets/images/site.webmanifest') ?>">
       
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -41,14 +49,110 @@ helper('permission');
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: #334155;
+            overflow-x: hidden; 
         }
         
+        /* Sidebar styling */
         .sidebar {
             min-height: 100vh;
+            height: 100%;
+            position: fixed;
+            width: 16.666667%; 
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 1040;
+            left: 0;
+            top: 0;
+            bottom: 0;
             background-color: var(--sidebar-bg);
             color: white;
-            transition: var(--transition);
+            transition: transform 0.3s ease-in-out;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            box-sizing：border-box;
+        }
+        
+        .main-content {
+            margin-left: 16.666667%;
+            padding: 20px 30px;
+            width: 83.333333%;
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Mobile styles */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 250px; 
+                transform: translateX(-100%); 
+                z-index: 1050; 
+            }
+            
+            .sidebar.show {
+                transform: translateX(0); 
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .main-content.sidebar-open {
+                transform: translateX(250px);
+            }
+        }
+        
+        /* Sidebar overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* Close button for sidebar */
+        .sidebar-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: none;
+            z-index: 1051;
+        }
+        
+        @media (max-width: 767.98px) {
+            .sidebar-close {
+                display: block;
+            }
+        }
+        
+        /* Navbar toggle button */
+        .navbar-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-right: 15px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        @media (max-width: 767.98px) {
+            .navbar-toggle {
+                display: block;
+            }
         }
         
         .sidebar .nav-link {
@@ -57,6 +161,9 @@ helper('permission');
             margin: 2px 10px;
             padding: 10px 12px;
             transition: var(--transition);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .sidebar .nav-link:hover {
@@ -70,8 +177,23 @@ helper('permission');
             background-color: var(--primary-color);
         }
         
-        .main-content {
-            padding: 20px 30px;
+        /* Mobile Header */
+        .mobile-header {
+            display: none;
+            background-color: white;
+            padding: 10px 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+        
+        @media (max-width: 767.98px) {
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
         }
         
         .navbar-brand {
@@ -79,6 +201,9 @@ helper('permission');
             font-size: 1.4rem;
             font-weight: 700;
             letter-spacing: -0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .nav-heading {
@@ -114,7 +239,7 @@ helper('permission');
             padding: 20px;
         }
         
-        /* Button styling with hover effects */
+        /* Button styling */
         .btn {
             border-radius: 8px;
             font-weight: 500;
@@ -122,56 +247,16 @@ helper('permission');
             transition: var(--transition);
         }
         
-        /* Primary button with white text */
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
-            color: white;
         }
         
         .btn-primary:hover, .btn-primary:focus {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
-            color: white !important;
         }
         
-        /* Secondary button with white text */
-        .btn-secondary {
-            color: #fff;
-        }
-        
-        .btn-secondary:hover, .btn-secondary:focus {
-            color: white !important;
-        }
-        
-        /* Success button with white text */
-        .btn-success {
-            color: #fff;
-        }
-        
-        .btn-success:hover, .btn-success:focus {
-            color: white !important;
-        }
-        
-        /* Danger button with white text */
-        .btn-danger {
-            color: #fff;
-        }
-        
-        .btn-danger:hover, .btn-danger:focus {
-            color: white !important;
-        }
-        
-        /* Info button with white text */
-        .btn-info {
-            color: #fff;
-        }
-        
-        .btn-info:hover, .btn-info:focus {
-            color: white !important;
-        }
-        
-        /* Outline primary button with hover effect */
         .btn-outline-primary {
             color: var(--primary-color);
             border-color: var(--primary-color);
@@ -180,14 +265,6 @@ helper('permission');
         .btn-outline-primary:hover, .btn-outline-primary:focus {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
-            color: white !important;
-        }
-        
-        /* For other outline buttons, ensure text changes to white on hover */
-        .btn-outline-secondary:hover,
-        .btn-outline-success:hover,
-        .btn-outline-danger:hover,
-        .btn-outline-info:hover {
             color: white !important;
         }
         
@@ -282,61 +359,69 @@ helper('permission');
             margin: 0.5rem 0;
         }
         
-        /* Subtext color changes on hover */
-        
-        /* Make all text within buttons turn white on hover (including small text, spans, etc.) */
-        .btn:hover *, .btn:focus * {
+        /* Button text colors */
+        .btn-primary, .btn-success, .btn-danger, .btn-info {
             color: white !important;
         }
         
-        /* Exception for warning buttons to keep dark text */
-        .btn-warning:hover *, .btn-warning:focus *,
-        .btn-outline-warning:hover *, .btn-outline-warning:focus * {
-            color: #212529 !important;
-        }
-        
-        /* Handle form text below inputs */
-        .form-text {
-            color: #6c757d;
-            transition: var(--transition);
-        }
-        
-        /* Style for small text inside cards that should change on hover */
-        .card-hover-effect .text-muted,
-        .card-hover-effect .small {
-            transition: var(--transition);
-        }
-        
-        .card-hover-effect:hover .text-muted,
-        .card-hover-effect:hover .small {
+        .btn-outline-primary:hover, 
+        .btn-outline-success:hover, 
+        .btn-outline-danger:hover, 
+        .btn-outline-info:hover {
             color: white !important;
         }
         
-        /* For links that have subtexts */
-        a:hover .text-muted,
-        a:hover .small,
-        a:focus .text-muted,
-        a:focus .small {
-            color: white !important;
+        /* Responsive tables */
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
         }
-        
-        /* Make sure icons inside buttons also follow the same color scheme */
-        .btn:hover i, .btn:focus i {
-            color: white !important;
-        }
-        
-        /* Exception for warning buttons */
-        .btn-warning:hover i, .btn-warning:focus i,
-        .btn-outline-warning:hover i, .btn-outline-warning:focus i {
-            color: #212529 !important;
+    
+        /* Fix for offcanvas navbar on mobile */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="d-flex align-items-center">
+            <button class="navbar-toggle" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <span class="fw-bold fs-5">HR System</span>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" id="mobileUserDropdown" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle me-1"></i> <?= session()->get('username') ?>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mobileUserDropdown">
+                <li><a class="dropdown-item" href="<?= base_url('profile') ?>">My Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="<?= base_url('logout') ?>">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container-fluid p-0">
+        <div class="row g-0">
             <!-- Sidebar -->
-            <div class="col-md-2 d-none d-md-block sidebar p-0">
+            <div class="col-md-2 sidebar" id="sidebar">
+                <button class="sidebar-close" id="sidebarClose">
+                    <i class="bi bi-x-lg"></i>
+                </button>
                 <div class="navbar-brand bg-primary text-white w-100 mb-2">
                     HR System
                 </div>
@@ -465,8 +550,8 @@ helper('permission');
             </div>
             
             <!-- Main content -->
-            <div class="col-md-10 ms-sm-auto px-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+            <div class="col-md-10 main-content" id="mainContent">
+                <div class="d-none d-md-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
                     <h1 class="h2 fw-light"><?= $title ?? 'Dashboard' ?></h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="dropdown">
@@ -480,6 +565,10 @@ helper('permission');
                             </ul>
                         </div>
                     </div>
+                </div>
+                
+                <div class="d-md-none">
+                    <h1 class="h3 fw-light mb-3"><?= $title ?? 'Dashboard' ?></h1>
                 </div>
                 
                 <?php if(session()->getFlashdata('success')): ?>
@@ -518,6 +607,65 @@ helper('permission');
         setTimeout(function() {
             $('.alert').fadeOut('slow');
         }, 5000);
+        
+        // Mobile sidebar toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Function to open sidebar
+            function openSidebar() {
+                sidebar.classList.add('show');
+                sidebarOverlay.classList.add('show');
+            }
+            
+            // Function to close sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            }
+            
+            // Toggle sidebar on burger icon click
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    openSidebar();
+                });
+            }
+            
+            // Close sidebar on X button click
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', function() {
+                    closeSidebar();
+                });
+            }
+            
+            // Close sidebar when clicking on overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    closeSidebar();
+                });
+            }
+            
+            // Close sidebar when clicking on menu items (for mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) {
+                        setTimeout(closeSidebar, 150); // Small delay to show the active state
+                    }
+                });
+            });
+            
+            // Close sidebar on window resize if width becomes larger than mobile breakpoint
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    closeSidebar();
+                }
+            });
+        });
     </script>
     
     <?= $this->renderSection('scripts') ?>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - HR System</title>
+    <title>Login - Julang Network</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -97,7 +97,7 @@
     <div class="login-container">
         <div class="card">
             <div class="card-header">
-                <h3>HR System</h3>
+                <h3>Julang Network</h3>
                 <p class="mb-0 text-white-50">Login to your account</p>
             </div>
             <div class="card-body p-4">

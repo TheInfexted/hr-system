@@ -17,6 +17,7 @@ $routes->get('payslips/admin', 'PayslipController::adminIndex', ['filter' => 'au
 $routes->get('payslips/admin/view/(:num)', 'PayslipController::adminView/$1', ['filter' => 'auth:view_payslips']);
 $routes->get('payslips/admin/mark-as-paid/(:num)', 'PayslipController::markAsPaid/$1', ['filter' => 'auth:mark_payslips_paid']);
 $routes->get('payslips/admin/cancel/(:num)', 'PayslipController::cancelPayslip/$1', ['filter' => 'auth:edit_payslips']);
+$routes->get('payslips/admin/delete/(:num)', 'PayslipController::delete/$1', ['filter' => 'auth:delete_payslips']);
 $routes->get('compensation', 'CompensationController::index', ['filter' => 'auth:view_compensation']);
 $routes->get('compensation/create/(:num)', 'CompensationController::create/$1', ['filter' => 'auth:create_compensation']);
 $routes->get('compensation/history/(:num)', 'CompensationController::history/$1', ['filter' => 'auth:view_compensation']);

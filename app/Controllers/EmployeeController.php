@@ -62,9 +62,9 @@ class EmployeeController extends BaseController
         try {
             $db = db_connect();
             $builder = $db->table('employees')
-                        ->select('employees.id, employees.user_id, employees.first_name, employees.last_name, employees.email, 
-                                  employees.phone, employees.status, companies.name as company')
-                        ->join('companies', 'companies.id = employees.company_id', 'left');
+                ->select('employees.id, employees.user_id, employees.first_name, employees.last_name, employees.email, 
+                          employees.phone, employees.status, companies.name as company, companies.prefix as company_prefix')
+                ->join('companies', 'companies.id = employees.company_id', 'left');
             
             // Apply company filtering based on user role
             if (session()->get('role_id') == 1) {
@@ -125,6 +125,10 @@ class EmployeeController extends BaseController
             $no = $start + 1;
             
             foreach ($result as $row) {
+                // Format employee ID with company prefix and leading zeros
+                $prefix = $row->company_prefix ?? 'EMP'; // Default prefix if not available
+                $formattedId = $prefix . '-' . str_pad($row->id, 4, '0', STR_PAD_LEFT);
+                
                 $actionButtons = '<div class="btn-group" role="group">
                                   <a href="'.base_url('employees/view/'.$row->id).'" class="btn btn-sm btn-info">View</a>
                                   <a href="'.base_url('employees/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>
@@ -149,7 +153,9 @@ class EmployeeController extends BaseController
                 
                 $data[] = [
                     'no' => $no++,
+                    'emp_id' => $formattedId, // Use a new key 'emp_id' for the formatted ID
                     'user_id' => $row->user_id ?? 'N/A',
+                    'company_prefix' => $row->company_prefix,
                     'name' => $row->first_name . ' ' . $row->last_name,
                     'email' => $row->email,
                     'phone' => $row->phone,
@@ -280,7 +286,8 @@ class EmployeeController extends BaseController
         } else {
             // Create a new user account
             // Generate a username from first name and last name
-            $baseUsername = strtolower(substr($firstName, 0, 1) . $lastName);
+            $sanitizedLastName = preg_replace('/[^a-zA-Z0-9]/', '', $lastName);
+            $baseUsername = strtolower(substr($firstName, 0, 1) . $sanitizedLastName);
             $username = $baseUsername;
             
             // Check if username exists, if so, add a number at the end
