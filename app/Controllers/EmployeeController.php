@@ -5,6 +5,7 @@ use App\Models\CompanyModel;
 use App\Models\CompensationModel;
 use App\Models\AttendanceModel;
 use App\Models\CurrencyModel;
+use App\Models\PayslipModel; // Added missing PayslipModel
 
 class EmployeeController extends BaseController
 {
@@ -12,6 +13,7 @@ class EmployeeController extends BaseController
     protected $companyModel;
     protected $compensationModel;
     protected $attendanceModel;
+    protected $payslipModel; // Added missing property
     protected $documentPath = 'uploads/documents/';
     
     protected function getUniqueFileName($prefix, $firstName, $lastName, $extension)
@@ -22,6 +24,7 @@ class EmployeeController extends BaseController
         // Add timestamp and random number to ensure uniqueness
         return $prefix . $sanitizedName . '_' . time() . '_' . rand(1000, 9999) . '.' . $extension;
     }
+    
     public function __construct()
     {
         $this->employeeModel = new EmployeeModel();
@@ -29,11 +32,18 @@ class EmployeeController extends BaseController
         $this->compensationModel = new CompensationModel();
         $this->attendanceModel = new AttendanceModel();
         $this->currencyModel = new CurrencyModel();
+        $this->payslipModel = new PayslipModel(); // Added missing initialization
     }
     
     // In EmployeeController.php
     public function index()
     {
+        helper('permission');
+        
+        if (!has_permission('view_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to view employees.');
+        }
+        
         // Apply company filtering for sub-account users
         $companyId = null;
         if (session()->get('role_id') == 1) {
@@ -58,6 +68,18 @@ class EmployeeController extends BaseController
         
     public function getEmployees()
     {
+        helper('permission');
+        
+        if (!has_permission('view_employees')) {
+            return $this->response->setJSON([
+                'draw' => 1,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'Access denied'
+            ]);
+        }
+        
         // Log the request
         log_message('debug', 'getEmployees method called');
         
@@ -134,7 +156,7 @@ class EmployeeController extends BaseController
                 $actionButtons = '<div class="btn-group" role="group">
                                   <a href="'.base_url('employees/view/'.$row->id).'" class="btn btn-sm btn-info">View</a>
                                   <a href="'.base_url('employees/edit/'.$row->id).'" class="btn btn-sm btn-primary">Edit</a>
-                                  <a href="'.base_url('employees/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">Delete</a>
+                                  <a href="'.base_url('employees/delete/'.$row->id).'" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure? This will delete all associated records including payslips!\')">Delete</a>
                                 </div>';
                 
                 $statusBadge = '<span class="badge bg-';
@@ -191,6 +213,12 @@ class EmployeeController extends BaseController
     
     public function create()
     {
+        helper('permission');
+        
+        if (!has_permission('create_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to create employees.');
+        }
+        
         // For admin or company managers, show appropriate companies for selection
         if (session()->get('role_id') == 1) {
             // Admin
@@ -221,7 +249,11 @@ class EmployeeController extends BaseController
     
     public function store()
     {
-        helper(['form']);
+        helper(['form', 'permission']);
+        
+        if (!has_permission('create_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to create employees.');
+        }
 
         $userModel = new \App\Models\UserModel();
         
@@ -349,6 +381,7 @@ class EmployeeController extends BaseController
             'company_id' => $companyId,
             'bank_name' => $this->request->getVar('bank_name'),
             'bank_account' => $this->request->getVar('bank_account'),
+            'bank_holder_name' => $this->request->getVar('bank_holder_name')
         ];
         
         // Create the directory if it doesn't exist
@@ -432,6 +465,12 @@ class EmployeeController extends BaseController
     
     public function edit($id)
     {
+        helper('permission');
+        
+        if (!has_permission('edit_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to edit employees.');
+        }
+        
         // Check company access
         $employee = $this->employeeModel->find($id);
         
@@ -478,7 +517,11 @@ class EmployeeController extends BaseController
     
     public function update($id)
     {
-        helper(['form']);
+        helper(['form', 'permission']);
+        
+        if (!has_permission('edit_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to edit employees.');
+        }
         
         // Check company access
         $employee = $this->employeeModel->find($id);
@@ -560,6 +603,7 @@ class EmployeeController extends BaseController
             'id_number' => $this->request->getPost('id_number'),
             'bank_name' => $this->request->getVar('bank_name'),
             'bank_account' => $this->request->getVar('bank_account'),
+            'bank_holder_name' => $this->request->getVar('bank_holder_name')
         ];
         
         // Create the directory if it doesn't exist
@@ -568,11 +612,12 @@ class EmployeeController extends BaseController
         }
         
         // Handle file uploads
+        $firstName = $this->request->getPost('first_name');
+        $lastName = $this->request->getPost('last_name');
+        
         // Offer Letter
         $offerLetterFile = $this->request->getFile('offer_letter');
         if ($offerLetterFile->isValid() && !$offerLetterFile->hasMoved()) {
-            $firstName = $this->request->getPost('first_name');
-            $lastName = $this->request->getPost('last_name');
             $offerLetterName = $this->getUniqueFileName('offer_letter_', $firstName, $lastName, $offerLetterFile->getExtension());
             $offerLetterFile->move($this->documentPath, $offerLetterName);
             $data['offer_letter'] = $offerLetterName;
@@ -662,6 +707,12 @@ class EmployeeController extends BaseController
     
     public function view($id)
     {
+        helper('permission');
+        
+        if (!has_permission('view_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to view employees.');
+        }
+        
         // Check company access
         if (session()->get('role_id') != 1) {
             $employee = $this->employeeModel->find($id);
@@ -706,15 +757,25 @@ class EmployeeController extends BaseController
         return view('employees/view', $data);
     }
     
+    /**
+     * Delete employee - Database will automatically cascade delete all related records
+     * This is the SIMPLIFIED delete method using CASCADE DELETE foreign keys
+     */
     public function delete($id)
     {
-        // Check company access
-        $employee = $this->employeeModel->find($id);
+        helper('permission');
         
+        if (!has_permission('delete_employees')) {
+            return redirect()->to('/dashboard')->with('error', 'Access denied. You do not have permission to delete employees.');
+        }
+        
+        // Check if employee exists
+        $employee = $this->employeeModel->find($id);
         if (empty($employee)) {
             return redirect()->to('/employees')->with('error', 'Employee not found');
         }
         
+        // Role-based access control
         if (session()->get('role_id') != 1) {
             if (session()->get('role_id') == 2 && $employee['company_id'] != session()->get('company_id')) {
                 return redirect()->to('/employees')->with('error', 'Access denied');
@@ -730,20 +791,55 @@ class EmployeeController extends BaseController
             }
         }
         
-        // Delete associated compensation records
-        $this->compensationModel->where('employee_id', $id)->delete();
+        // Optional: Check for paid payslips and warn user (but still allow deletion)
+        $paidPayslips = $this->payslipModel->where('employee_id', $id)
+                                          ->where('status', 'paid')
+                                          ->countAllResults();
         
-        // Delete associated attendance records
-        $this->attendanceModel->where('employee_id', $id)->delete();
+        // Count related records for informational message
+        $payslipCount = $this->payslipModel->where('employee_id', $id)->countAllResults();
+        $compensationCount = $this->compensationModel->where('employee_id', $id)->countAllResults();
+        $attendanceCount = $this->attendanceModel->where('employee_id', $id)->countAllResults();
         
-        // Delete employee
-        $this->employeeModel->delete($id);
-        
-        return redirect()->to('/employees')->with('success', 'Employee deleted successfully');
+        try {
+            // Simply delete the employee - database will cascade delete all related records
+            $this->employeeModel->delete($id);
+            
+            // Build success message with details of what was deleted
+            $deleteDetails = [];
+            if ($payslipCount > 0) $deleteDetails[] = "{$payslipCount} payslip(s)";
+            if ($compensationCount > 0) $deleteDetails[] = "{$compensationCount} compensation record(s)";
+            if ($attendanceCount > 0) $deleteDetails[] = "{$attendanceCount} attendance record(s)";
+            
+            $message = 'Employee deleted successfully';
+            if (!empty($deleteDetails)) {
+                $message .= ' along with ' . implode(', ', $deleteDetails);
+            }
+            
+            // Add warning if paid payslips were deleted
+            if ($paidPayslips > 0) {
+                $message .= ". Note: {$paidPayslips} paid payslip(s) were also deleted.";
+            }
+            
+            // Log the deletion for audit purposes
+            log_message('info', "Employee {$employee['first_name']} {$employee['last_name']} (ID: {$id}) deleted by user " . session()->get('username') . " along with {$payslipCount} payslips, {$compensationCount} compensation records, and {$attendanceCount} attendance records.");
+            
+            return redirect()->to('/employees')->with('success', $message);
+            
+        } catch (\Exception $e) {
+            log_message('error', 'Error deleting employee: ' . $e->getMessage());
+            return redirect()->to('/employees')->with('error', 'Failed to delete employee: ' . $e->getMessage());
+        }
     }
 
     public function getByCompany($companyId)
     {
+        helper('permission');
+        
+        if (!has_permission('view_employees')) {
+            return $this->response->setJSON([]);
+        }
+        
         // Check access if not admin
         if (session()->get('role_id') != 1) {
             if ($companyId != session()->get('company_id')) {

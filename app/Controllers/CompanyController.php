@@ -88,7 +88,7 @@ class CompanyController extends BaseController
             if (!empty($search)) {
                 $builder->groupStart()
                     ->like('name', $search)
-                    ->orLike('prefix', $search)  // Added prefix search
+                    ->orLike('prefix', $search) 
                     ->orLike('address', $search)
                     ->orLike('contact_person', $search)
                     ->orLike('contact_email', $search)

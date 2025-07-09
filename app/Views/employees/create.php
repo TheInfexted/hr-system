@@ -93,15 +93,6 @@
                     <input type="text" class="form-control" id="bank_account" name="bank_account" value="<?= old('bank_account') ?>">
                 </div>
             </div>
-            <div class="col-md-6">
-        <label for="bank_name" class="form-label">Name of Bank</label>
-        <input type="text" class="form-control" id="bank_name" name="bank_name" value="<?= old('bank_name') ?>">
-    </div>
-    <div class="col-md-6">
-        <label for="bank_account" class="form-label">Bank Account Number</label>
-        <input type="text" class="form-control" id="bank_account" name="bank_account" value="<?= old('bank_account') ?>">
-    </div>
-</div>
             
             <!-- Personal Information -->
             <div class="row g-3 mb-4">
