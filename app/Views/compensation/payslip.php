@@ -58,11 +58,15 @@
             
             <!-- Earnings & Deductions Table -->
             <table class="table table-bordered">
+                <?php 
+                // Get currency code from the payslip or compensation model if available
+                $currencyCode = isset($currency_code) ? $currency_code : (isset($payslip['currency_code']) ? $payslip['currency_code'] : 'RM');
+                ?>
                 <tr style="background-color: #f0f0f0;">
                     <th width="25%">Earnings</th>
-                    <th width="25%" class="text-end">Amount (RM)</th>
+                    <th width="25%" class="text-end">Amount (<?= $currencyCode ?>)</th>
                     <th width="25%">Deductions</th>
-                    <th width="25%" class="text-end">Amount (RM)</th>
+                    <th width="25%" class="text-end">Amount (<?= $currencyCode ?>)</th>
                 </tr>
                 <tr>
                     <td>Basic Pay</td>

@@ -53,10 +53,25 @@
                 <div class="col-12">
                     <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-currency-dollar me-2"></i>Compensation Information</h5>
                 </div>
+                
+                <!-- Currency selector -->
+                <div class="col-md-12 mb-2">
+                    <label for="currency_id" class="form-label">Currency</label>
+                    <select class="form-select" id="currency_id" name="currency_id">
+                        <?php foreach($currencies as $currency): ?>
+                            <option value="<?= $currency['id'] ?>" 
+                                    data-symbol="<?= $currency['currency_symbol'] ?>"
+                                    <?= old('currency_id') == $currency['id'] ? 'selected' : '' ?>>
+                                <?= $currency['country_name'] ?> (<?= $currency['currency_code'] ?> - <?= $currency['currency_symbol'] ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
                 <div class="col-md-6">
                     <label for="hourly_rate" class="form-label">Hourly Rate</label>
                     <div class="input-group">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text currency-symbol">$</span>
                         <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" value="<?= old('hourly_rate') ?>">
                     </div>
                     <small class="text-muted">Leave blank if not applicable</small>
@@ -64,12 +79,29 @@
                 <div class="col-md-6">
                     <label for="monthly_salary" class="form-label">Monthly Salary</label>
                     <div class="input-group">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text currency-symbol">$</span>
                         <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" value="<?= old('monthly_salary') ?>">
                     </div>
                     <small class="text-muted">Leave blank if not applicable</small>
                 </div>
+                <div class="col-md-6">
+                    <label for="bank_name" class="form-label">Name of Bank</label>
+                    <input type="text" class="form-control" id="bank_name" name="bank_name" value="<?= old('bank_name') ?>">
+                </div>
+                <div class="col-md-6">
+                    <label for="bank_account" class="form-label">Bank Account Number</label>
+                    <input type="text" class="form-control" id="bank_account" name="bank_account" value="<?= old('bank_account') ?>">
+                </div>
             </div>
+            <div class="col-md-6">
+        <label for="bank_name" class="form-label">Name of Bank</label>
+        <input type="text" class="form-control" id="bank_name" name="bank_name" value="<?= old('bank_name') ?>">
+    </div>
+    <div class="col-md-6">
+        <label for="bank_account" class="form-label">Bank Account Number</label>
+        <input type="text" class="form-control" id="bank_account" name="bank_account" value="<?= old('bank_account') ?>">
+    </div>
+</div>
             
             <!-- Personal Information -->
             <div class="row g-3 mb-4">
@@ -318,6 +350,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update when ID type changes
     idTypeField.addEventListener('change', updateIdValidation);
+    
+        // Add currency symbol update functionality
+    const currencySelector = document.getElementById('currency_id');
+    const currencySymbols = document.querySelectorAll('.currency-symbol');
+    
+    function updateCurrencySymbol() {
+        const selectedOption = currencySelector.options[currencySelector.selectedIndex];
+        const symbol = selectedOption.getAttribute('data-symbol');
+        
+        currencySymbols.forEach(span => {
+            span.textContent = symbol;
+        });
+    }
+    
+    // Initial call to set the correct currency symbol
+    updateCurrencySymbol();
+    
+    // Update when currency changes
+    currencySelector.addEventListener('change', updateCurrencySymbol);
 });
 </script>
 <?= $this->endSection() ?>

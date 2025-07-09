@@ -57,6 +57,14 @@
                             <td>Working Days</td>
                             <td>: <?= $payslip['working_days'] ?></td>
                         </tr>
+                        <tr>
+                            <td width="120">Bank Name</td>
+                            <td>: <?= $employee['bank_name'] ?? 'N/A' ?></td>
+                        </tr>
+                        <tr>
+                            <td>Bank Account</td>
+                            <td>: <?= $employee['bank_account'] ?? 'N/A' ?></td>
+                        </tr>
                     </table>
                 </div>
                 <div class="col-6">
@@ -85,9 +93,9 @@
             <table class="table table-bordered">
                 <tr style="background-color: #f0f0f0;">
                     <th width="25%">Earnings</th>
-                    <th width="25%" class="text-end">Amount (RM)</th>
+                    <th width="25%" class="text-end">Amount (<?= $payslip['currency_code'] ?? 'RM' ?>)</th>
                     <th width="25%">Deductions</th>
-                    <th width="25%" class="text-end">Amount (RM)</th>
+                    <th width="25%" class="text-end">Amount (<?= $payslip['currency_code'] ?? 'RM' ?>)</th>
                 </tr>
                 <tr>
                     <td>Basic Pay</td>

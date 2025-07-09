@@ -4,6 +4,7 @@ use App\Models\EmployeeModel;
 use App\Models\CompanyModel;
 use App\Models\CompensationModel;
 use App\Models\AttendanceModel;
+use App\Models\CurrencyModel;
 
 class EmployeeController extends BaseController
 {
@@ -27,6 +28,7 @@ class EmployeeController extends BaseController
         $this->companyModel = new CompanyModel();
         $this->compensationModel = new CompensationModel();
         $this->attendanceModel = new AttendanceModel();
+        $this->currencyModel = new CurrencyModel();
     }
     
     // In EmployeeController.php
@@ -210,7 +212,8 @@ class EmployeeController extends BaseController
         $data = [
             'title' => 'Add New Employee',
             'companies' => $companies,
-            'validation' => \Config\Services::validation()
+            'validation' => \Config\Services::validation(),
+            'currencies' => $this->currencyModel->getActiveCurrencies(),
         ];
         
         return view('employees/create', $data);
@@ -343,7 +346,9 @@ class EmployeeController extends BaseController
             'position' => $this->request->getPost('position'),
             'id_type' => $this->request->getPost('id_type'),
             'id_number' => $this->request->getPost('id_number'),
-            'company_id' => $companyId
+            'company_id' => $companyId,
+            'bank_name' => $this->request->getVar('bank_name'),
+            'bank_account' => $this->request->getVar('bank_account'),
         ];
         
         // Create the directory if it doesn't exist
@@ -415,7 +420,8 @@ class EmployeeController extends BaseController
                 'hourly_rate' => $hourlyRate,
                 'monthly_salary' => $monthlySalary,
                 'effective_date' => date('Y-m-d'),
-                'created_by' => session()->get('user_id')
+                'created_by' => session()->get('user_id'),
+                'currency_id' => $this->request->getVar('currency_id')
             ];
             
             $this->compensationModel->save($compData);
@@ -452,7 +458,8 @@ class EmployeeController extends BaseController
             'title' => 'Edit Employee',
             'employee' => $employee,
             'companies' => $this->companyModel->findAll(),
-            'validation' => \Config\Services::validation()
+            'validation' => \Config\Services::validation(),
+            'currencies' => $this->currencyModel->getActiveCurrencies(),
         ];
         
         // If company role or sub-account, only show their company
@@ -463,9 +470,7 @@ class EmployeeController extends BaseController
         }
         
         // Get compensation info
-        $compensation = $this->compensationModel->where('employee_id', $id)
-                                              ->orderBy('effective_date', 'DESC')
-                                              ->first();
+        $compensation = $this->compensationModel->getWithCurrencyByEmployee($id);
         $data['compensation'] = $compensation;
         
         return view('employees/edit', $data);
@@ -552,7 +557,9 @@ class EmployeeController extends BaseController
             'department' => $this->request->getPost('department'),
             'position' => $this->request->getPost('position'),
             'id_type' => $this->request->getPost('id_type'),
-            'id_number' => $this->request->getPost('id_number')
+            'id_number' => $this->request->getPost('id_number'),
+            'bank_name' => $this->request->getVar('bank_name'),
+            'bank_account' => $this->request->getVar('bank_account'),
         ];
         
         // Create the directory if it doesn't exist
@@ -643,7 +650,8 @@ class EmployeeController extends BaseController
                 'hourly_rate' => $hourlyRate,
                 'monthly_salary' => $monthlySalary,
                 'effective_date' => date('Y-m-d'),
-                'created_by' => session()->get('user_id')
+                'created_by' => session()->get('user_id'),
+                'currency_id' => $this->request->getVar('currency_id')
             ];
             
             $this->compensationModel->save($compData);
@@ -684,9 +692,7 @@ class EmployeeController extends BaseController
         }
         
         // Get compensation history
-        $data['compensation_history'] = $this->compensationModel->where('employee_id', $id)
-                                                             ->orderBy('effective_date', 'DESC')
-                                                             ->findAll();
+        $data['compensation_history'] = $this->compensationModel->getHistoryWithCurrency($id);
         
         // Get attendance history (last 30 days)
         $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));

@@ -362,8 +362,20 @@
                                         ?>
                                         <tr>
                                             <td><?= date('d F Y', strtotime($latestComp['effective_date'])) ?></td>
-                                            <td><?= $latestComp['monthly_salary'] ? '$' . number_format($latestComp['monthly_salary'], 2) : '-' ?></td>
-                                            <td><?= $latestComp['hourly_rate'] ? '$' . number_format($latestComp['hourly_rate'], 2) : '-' ?></td>
+                                            <td>
+                                                <?php if ($latestComp['monthly_salary']): ?>
+                                                    <?= ($latestComp['currency_symbol'] ?? '$') . ' ' . number_format($latestComp['monthly_salary'], 2) ?>
+                                                <?php else: ?>
+                                                    -
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if ($latestComp['hourly_rate']): ?>
+                                                    <?= ($latestComp['currency_symbol'] ?? '$') . ' ' . number_format($latestComp['hourly_rate'], 2) ?>
+                                                <?php else: ?>
+                                                    -
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -374,6 +386,17 @@
                                 <a href="<?= base_url('compensation/create/'.$employee['id']) ?>" class="alert-link">Add compensation details</a>.
                             </div>
                         <?php endif; ?>
+                        <div class="mt-4">
+                            <h6 class="border-bottom pb-2">Banking Information</h6>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <p><strong>Bank Name:</strong> <?= $employee['bank_name'] ?? 'Not provided' ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Bank Account:</strong> <?= $employee['bank_account'] ?? 'Not provided' ?></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -40,6 +40,19 @@
                     <input type="number" class="form-control" id="year" name="year" value="<?= date('Y') ?>" required>
                 </div>
             </div>
+            
+            <input type="hidden" name="currency_id" value="<?= $compensation['currency_id'] ?>">
+
+            <!-- Add an informational alert -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="alert alert-info">
+                        <strong>Currency:</strong> <?= $compensation['currency_code'] ?? 'Default' ?> (<?= $compensation['currency_symbol'] ?? '$' ?>)
+                        <br>
+                        <small class="text-muted">The payslip will use the same currency as the employee's compensation record.</small>
+                    </div>
+                </div>
+            </div>
 
             <div class="row mb-3">
                 <div class="col-md-6">

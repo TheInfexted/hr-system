@@ -16,7 +16,8 @@ class EmployeeModel extends Model
         'user_id', 'company_id', 'first_name', 'last_name', 'email', 'phone', 
         'address', 'emergency_contact', 'date_of_birth', 'hire_date', 'status',
         'department', 'position', 'id_type', 'id_number', 
-        'passport_file', 'nric_front', 'nric_back', 'offer_letter'
+        'passport_file', 'nric_front', 'nric_back', 'offer_letter',
+        'bank_name', 'bank_account'  
     ];
     
     protected $useTimestamps = true;
@@ -29,7 +30,9 @@ class EmployeeModel extends Model
         'email'         => 'required|valid_email', 
         'phone'         => 'permit_empty|min_length[10]',
         'hire_date'     => 'required|valid_date',
-        'company_id'    => 'required|numeric'
+        'company_id'    => 'required|numeric',
+        'bank_name'     => 'permit_empty|max_length[100]',
+        'bank_account'  => 'permit_empty|max_length[50]'
     ];
     
     protected $validationMessages = [

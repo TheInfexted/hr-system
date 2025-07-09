@@ -20,6 +20,100 @@
             <!-- Add CSRF token field -->
             <?= csrf_field() ?>
             
+            <!-- 1. COMPANY INFORMATION -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-building me-2"></i>Company Information</h5>
+                </div>
+                <?php if(session()->get('role_id') == 1): // Admin only ?>
+                <div class="col-md-6">
+                    <label for="company_id" class="form-label">Company <span class="text-danger">*</span></label>
+                    <select class="form-select" id="company_id" name="company_id">
+                        <?php foreach($companies as $company): ?>
+                            <option value="<?= $company['id'] ?>" <?= old('company_id', $employee['company_id']) == $company['id'] ? 'selected' : '' ?>>
+                                <?= $company['name'] ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+                <div class="col-md-<?= session()->get('role_id') == 1 ? '6' : '12' ?>">
+                    <label for="hire_date" class="form-label">Hire Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('hire_date')) ? 'is-invalid' : '' ?>" 
+                           id="hire_date" name="hire_date" value="<?= old('hire_date', $employee['hire_date']) ?>">
+                    <?php if(isset($validation) && $validation->hasError('hire_date')): ?>
+                        <div class="invalid-feedback"><?= $validation->getError('hire_date') ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="col-md-<?= session()->get('role_id') == 1 ? '6' : '12' ?>">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="Active" <?= old('status', $employee['status']) == 'Active' ? 'selected' : '' ?>>Active</option>
+                        <option value="On Leave" <?= old('status', $employee['status']) == 'On Leave' ? 'selected' : '' ?>>On Leave</option>
+                        <option value="Terminated" <?= old('status', $employee['status']) == 'Terminated' ? 'selected' : '' ?>>Terminated</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 2. COMPENSATION INFORMATION -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-currency-dollar me-2"></i>Compensation Information</h5>
+                </div>
+                
+                <!-- Currency selector -->
+                <div class="col-md-12 mb-2">
+                    <label for="currency_id" class="form-label">Currency</label>
+                    <select class="form-select" id="currency_id" name="currency_id">
+                        <?php foreach($currencies as $currency): ?>
+                            <option value="<?= $currency['id'] ?>" 
+                                    data-symbol="<?= $currency['currency_symbol'] ?>"
+                                    <?= old('currency_id', $compensation['currency_id'] ?? 1) == $currency['id'] ? 'selected' : '' ?>>
+                                <?= $currency['country_name'] ?> (<?= $currency['currency_code'] ?> - <?= $currency['currency_symbol'] ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="hourly_rate" class="form-label">Hourly Rate</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" 
+                               value="<?= old('hourly_rate', $compensation['hourly_rate'] ?? '') ?>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="monthly_salary" class="form-label">Monthly Salary</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" 
+                               value="<?= old('monthly_salary', $compensation['monthly_salary'] ?? '') ?>">
+                    </div>
+                </div>
+                
+                <!-- Add bank information fields -->
+                <div class="col-md-6">
+                    <label for="bank_name" class="form-label">Name of Bank</label>
+                    <input type="text" class="form-control" id="bank_name" name="bank_name" 
+                           value="<?= old('bank_name', $employee['bank_name'] ?? '') ?>">
+                </div>
+                <div class="col-md-6">
+                    <label for="bank_account" class="form-label">Bank Account Number</label>
+                    <input type="text" class="form-control" id="bank_account" name="bank_account" 
+                           value="<?= old('bank_account', $employee['bank_account'] ?? '') ?>">
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="update_compensation" name="update_compensation" value="1">
+                        <label class="form-check-label" for="update_compensation">Create new compensation record with these values</label>
+                        <div class="form-text">Check this to create a new compensation record with the above values. Leave unchecked to keep current compensation.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. PERSONAL INFORMATION -->
             <div class="row g-3 mb-4">
                 <div class="col-12">
                     <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-person-lines-fill me-2"></i>Personal Information</h5>
@@ -40,9 +134,14 @@
                         <div class="invalid-feedback"><?= $validation->getError('last_name') ?></div>
                     <?php endif; ?>
                 </div>
+                <div class="col-md-6">
+                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                           value="<?= old('date_of_birth', $employee['date_of_birth']) ?>">
+                </div>
             </div>
             
-            <!-- ID Type and ID Number fields -->
+            <!-- 4. ID INFORMATION -->
             <div class="row g-3 mb-4">
                 <div class="col-12">
                     <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-card-heading me-2"></i>Identification</h5>
@@ -131,7 +230,7 @@
                 </div>
             </div>
             
-            <!-- Offer Letter Upload Section -->
+            <!-- 5. DOCUMENTS SECTION -->
             <div class="row g-3 mb-4">
                 <div class="col-12">
                     <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Documents</h5>
@@ -156,7 +255,7 @@
                 </div>
             </div>
             
-            <!-- Department and Position fields -->
+            <!-- 6. EMPLOYMENT DETAILS -->
             <div class="row g-3 mb-4">
                 <div class="col-12">
                     <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-briefcase me-2"></i>Employment Details</h5>
@@ -173,6 +272,7 @@
                 </div>
             </div>
             
+            <!-- 7. CONTACT INFORMATION -->
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
@@ -222,6 +322,7 @@
                 </div>
             </div>
             
+            <!-- 8. ADDRESS AND EMERGENCY CONTACT -->
             <div class="row g-3 mb-4">
                 <div class="col-md-12">
                     <label for="address" class="form-label">Address</label>
@@ -234,77 +335,6 @@
                     <label for="emergency_contact" class="form-label">Emergency Contact</label>
                     <input type="text" class="form-control" id="emergency_contact" name="emergency_contact" 
                            value="<?= old('emergency_contact', $employee['emergency_contact']) ?>">
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label for="date_of_birth" class="form-label">Date of Birth</label>
-                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
-                           value="<?= old('date_of_birth', $employee['date_of_birth']) ?>">
-                </div>
-                <div class="col-md-6">
-                    <label for="hire_date" class="form-label">Hire Date <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control <?= (isset($validation) && $validation->hasError('hire_date')) ? 'is-invalid' : '' ?>" 
-                           id="hire_date" name="hire_date" value="<?= old('hire_date', $employee['hire_date']) ?>">
-                    <?php if(isset($validation) && $validation->hasError('hire_date')): ?>
-                        <div class="invalid-feedback"><?= $validation->getError('hire_date') ?></div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <?php if(session()->get('role_id') == 1): // Admin only ?>
-                <div class="col-md-6">
-                    <label for="company_id" class="form-label">Company <span class="text-danger">*</span></label>
-                    <select class="form-select" id="company_id" name="company_id">
-                        <?php foreach($companies as $company): ?>
-                            <option value="<?= $company['id'] ?>" <?= old('company_id', $employee['company_id']) == $company['id'] ? 'selected' : '' ?>>
-                                <?= $company['name'] ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <?php endif; ?>
-                <div class="col-md-<?= session()->get('role_id') == 1 ? '6' : '12' ?>">
-                    <label for="status" class="form-label">Status</label>
-                    <select class="form-select" id="status" name="status">
-                        <option value="Active" <?= old('status', $employee['status']) == 'Active' ? 'selected' : '' ?>>Active</option>
-                        <option value="On Leave" <?= old('status', $employee['status']) == 'On Leave' ? 'selected' : '' ?>>On Leave</option>
-                        <option value="Terminated" <?= old('status', $employee['status']) == 'Terminated' ? 'selected' : '' ?>>Terminated</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <div class="col-12">
-                    <h5 class="border-bottom pb-2 text-primary"><i class="bi bi-currency-dollar me-2"></i>Compensation Information</h5>
-                </div>
-                <div class="col-md-6">
-                    <label for="hourly_rate" class="form-label">Hourly Rate</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" class="form-control" id="hourly_rate" name="hourly_rate" 
-                               value="<?= old('hourly_rate', $compensation['hourly_rate'] ?? '') ?>">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label for="monthly_salary" class="form-label">Monthly Salary</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" class="form-control" id="monthly_salary" name="monthly_salary" 
-                               value="<?= old('monthly_salary', $compensation['monthly_salary'] ?? '') ?>">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-3 mb-4">
-                <div class="col-md-12">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="update_compensation" name="update_compensation" value="1">
-                        <label class="form-check-label" for="update_compensation">Create new compensation record with these values</label>
-                        <div class="form-text">Check this to create a new compensation record with the above values. Leave unchecked to keep current compensation.</div>
-                    </div>
                 </div>
             </div>
             
@@ -328,6 +358,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const idHelpText = document.getElementById('idHelpText');
     const passportUploadSection = document.getElementById('passport_upload_section');
     const nricUploadSection = document.getElementById('nric_upload_section');
+    const currencySelector = document.getElementById('currency_id');
+    const currencySymbols = document.querySelectorAll('.currency-symbol');
     
     function updateIdValidation() {
         const idType = idTypeField.value;
@@ -358,6 +390,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update when ID type changes
     idTypeField.addEventListener('change', updateIdValidation);
+    
+    // Add currency symbol update functionality
+    function updateCurrencySymbol() {
+        if (!currencySelector) return; // Safety check
+        
+        const selectedOption = currencySelector.options[currencySelector.selectedIndex];
+        if (selectedOption && selectedOption.getAttribute('data-symbol')) {
+            const symbol = selectedOption.getAttribute('data-symbol');
+            
+            currencySymbols.forEach(span => {
+                span.textContent = symbol;
+            });
+            
+            console.log('Currency symbol updated to:', symbol); // Debug
+        }
+    }
+    
+    // Initial call to set the correct currency symbol
+    updateCurrencySymbol();
+    
+    // Update when currency changes
+    if (currencySelector) {
+        currencySelector.addEventListener('change', updateCurrencySymbol);
+    }
 });
 </script>
 <?= $this->endSection() ?>
