@@ -381,7 +381,6 @@ class EmployeeController extends BaseController
             'company_id' => $companyId,
             'bank_name' => $this->request->getVar('bank_name'),
             'bank_account' => $this->request->getVar('bank_account'),
-            'bank_holder_name' => $this->request->getVar('bank_holder_name')
         ];
         
         // Create the directory if it doesn't exist
@@ -603,7 +602,6 @@ class EmployeeController extends BaseController
             'id_number' => $this->request->getPost('id_number'),
             'bank_name' => $this->request->getVar('bank_name'),
             'bank_account' => $this->request->getVar('bank_account'),
-            'bank_holder_name' => $this->request->getVar('bank_holder_name')
         ];
         
         // Create the directory if it doesn't exist
@@ -810,6 +808,12 @@ class EmployeeController extends BaseController
             // Delete the linked user record
             if (!empty($employee['user_id'])) {
                 $userModel->delete($employee['user_id']);
+            }
+
+            // Reset AUTO_INCREMENT if no more employees
+            $db = \Config\Database::connect();
+            if ($db->table('employees')->countAll() === 0) {
+                $db->query("ALTER TABLE employees AUTO_INCREMENT = 1");
             }
 
             // Build success message
