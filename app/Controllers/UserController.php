@@ -60,9 +60,7 @@ class UserController extends BaseController
             $builder = $db->table('users')
                         ->select('users.id, users.username, users.email, roles.name as role, companies.name as company')
                         ->join('roles', 'roles.id = users.role_id')
-                        ->join('companies', 'companies.id = users.company_id', 'left')
-                        // Exclude employee role (role_id = 7)
-                        ->where('users.role_id !=', 7);
+                        ->join('companies', 'companies.id = users.company_id', 'left');
             
             // Apply filtering based on user role
             if (session()->get('role_id') == 2 || session()->get('role_id') == 3) { 

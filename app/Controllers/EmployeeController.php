@@ -32,7 +32,7 @@ class EmployeeController extends BaseController
         $this->compensationModel = new CompensationModel();
         $this->attendanceModel = new AttendanceModel();
         $this->currencyModel = new CurrencyModel();
-        $this->payslipModel = new PayslipModel(); // Added missing initialization
+        $this->payslipModel = new PayslipModel();
     }
     
     // In EmployeeController.php
@@ -802,30 +802,34 @@ class EmployeeController extends BaseController
         $attendanceCount = $this->attendanceModel->where('employee_id', $id)->countAllResults();
         
         try {
-            // Simply delete the employee - database will cascade delete all related records
+            $userModel = new \App\Models\UserModel();
+
+            // Delete the employee record
             $this->employeeModel->delete($id);
-            
-            // Build success message with details of what was deleted
+
+            // Delete the linked user record
+            if (!empty($employee['user_id'])) {
+                $userModel->delete($employee['user_id']);
+            }
+
+            // Build success message
             $deleteDetails = [];
             if ($payslipCount > 0) $deleteDetails[] = "{$payslipCount} payslip(s)";
             if ($compensationCount > 0) $deleteDetails[] = "{$compensationCount} compensation record(s)";
             if ($attendanceCount > 0) $deleteDetails[] = "{$attendanceCount} attendance record(s)";
-            
+
             $message = 'Employee deleted successfully';
             if (!empty($deleteDetails)) {
                 $message .= ' along with ' . implode(', ', $deleteDetails);
             }
-            
-            // Add warning if paid payslips were deleted
+
             if ($paidPayslips > 0) {
                 $message .= ". Note: {$paidPayslips} paid payslip(s) were also deleted.";
             }
-            
-            // Log the deletion for audit purposes
-            log_message('info', "Employee {$employee['first_name']} {$employee['last_name']} (ID: {$id}) deleted by user " . session()->get('username') . " along with {$payslipCount} payslips, {$compensationCount} compensation records, and {$attendanceCount} attendance records.");
-            
+
+            log_message('info', "Employee {$employee['first_name']} {$employee['last_name']} (ID: {$id}) deleted by user " . session()->get('username') . " along with {$payslipCount} payslips, {$compensationCount} compensation records, {$attendanceCount} attendance records.");
+
             return redirect()->to('/employees')->with('success', $message);
-            
         } catch (\Exception $e) {
             log_message('error', 'Error deleting employee: ' . $e->getMessage());
             return redirect()->to('/employees')->with('error', 'Failed to delete employee: ' . $e->getMessage());
