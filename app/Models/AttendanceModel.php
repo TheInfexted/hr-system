@@ -70,10 +70,6 @@ class AttendanceModel extends Model
         $formattedStartDate = date('Y-m-d', strtotime($startDate));
         $formattedEndDate = date('Y-m-d', strtotime($endDate));
         
-        // Log the actual query parameters
-        log_message('debug', 'Attendance date range query with params: ' . 
-            "start_date: $formattedStartDate, end_date: $formattedEndDate, " . 
-            "company_id: $companyId, employee_id: $employeeId");
         
         $builder->where('attendance.date >=', $formattedStartDate);
         $builder->where('attendance.date <=', $formattedEndDate);
@@ -90,7 +86,6 @@ class AttendanceModel extends Model
         $builder->orderBy('attendance.date', 'DESC');
         
         $result = $builder->get()->getResultArray();
-        log_message('debug', 'Query returned ' . count($result) . ' records');
         
         return $result;
     }

@@ -188,6 +188,7 @@ class AttendanceController extends BaseController
         $date = $this->request->getVar('date');
         $existing = $this->attendanceModel->where('employee_id', $employeeId)
                                        ->where('date', $date)
+                                       ->orderBy('id', 'DESC')
                                        ->first();
         
         if ($existing) {
@@ -437,8 +438,6 @@ class AttendanceController extends BaseController
         // Get report data
         $reportData = $this->attendanceModel->getAttendanceForDateRange($startDate, $endDate, $companyId, $employeeId);
         
-        log_message('debug', 'Report query returned ' . count($reportData) . ' records');
-        
         // Prepare summary data with capitalized status keys to match database values
         $summary = [
             'total_days' => count($reportData),
@@ -453,8 +452,6 @@ class AttendanceController extends BaseController
             // Ensure status exists in summary before incrementing
             if (isset($record['status']) && isset($summary[$record['status']])) {
                 $summary[$record['status']]++;
-            } else {
-                log_message('debug', 'Unknown status in record: ' . json_encode($record));
             }
         }
         
@@ -464,8 +461,6 @@ class AttendanceController extends BaseController
             $company = $this->companyModel->find($companyId);
             if ($company) {
                 $companyName = $company['name'];
-            } else {
-                log_message('debug', 'Company not found with ID: ' . $companyId);
             }
         }
         
@@ -474,8 +469,6 @@ class AttendanceController extends BaseController
             $employee = $this->employeeModel->find($employeeId);
             if ($employee) {
                 $employeeName = $employee['first_name'] . ' ' . $employee['last_name'];
-            } else {
-                log_message('debug', 'Employee not found with ID: ' . $employeeId);
             }
         }
         

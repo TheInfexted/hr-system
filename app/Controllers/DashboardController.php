@@ -109,11 +109,7 @@ class DashboardController extends BaseController
     private function employeeDashboard()
     {
         try {
-            // Log debug information
-            log_message('debug', 'Employee dashboard method called');
-            
             $userId = session()->get('user_id');
-            log_message('debug', 'User ID: ' . $userId);
             
             // Get employee details
             $employeeModel = new EmployeeModel();
@@ -121,7 +117,6 @@ class DashboardController extends BaseController
             
             // Check if employee record exists
             if (!$employee) {
-                log_message('error', 'Employee record not found for user_id: ' . $userId);
                 // Show a simple error instead of redirecting (to avoid redirect loops)
                 $data = [
                     'title' => 'Account Error',
@@ -130,13 +125,12 @@ class DashboardController extends BaseController
                 return view('errors/html/error_general', $data);
             }
             
-            log_message('debug', 'Employee found: ' . json_encode($employee));
-            
             // Get today's attendance
             $attendanceModel = new AttendanceModel();
             $today = date('Y-m-d');
             $todayAttendance = $attendanceModel->where('employee_id', $employee['id'])
                                            ->where('date', $today)
+                                           ->orderBy('id', 'DESC')
                                            ->first();
             
             // Initialize data array with safe defaults for all variables used in the view
@@ -146,16 +140,9 @@ class DashboardController extends BaseController
                 'today_attendance' => $todayAttendance ?: null
             ];
             
-            log_message('debug', 'About to render employee dashboard view');
-            
             return view('dashboard/employee', $data);
         } 
         catch (\Exception $e) {
-            // Log the actual error
-            log_message('error', 'Error in employeeDashboard: ' . $e->getMessage());
-            log_message('error', 'File: ' . $e->getFile() . ' Line: ' . $e->getLine());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
-            
             // Show a user-friendly error page
             $data = [
                 'title' => 'Error',

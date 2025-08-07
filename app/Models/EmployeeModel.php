@@ -81,6 +81,7 @@ class EmployeeModel extends Model
         
         // Get the most recent compensation record
         $builder->orderBy('compensation.effective_date', 'DESC');
+        $builder->orderBy('compensation.id', 'DESC');
         $builder->limit(1);
         
         return $builder->get()->getRowArray();

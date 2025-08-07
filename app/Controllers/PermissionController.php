@@ -136,8 +136,7 @@ class PermissionController extends BaseController
         // Get all permissions from the form
         $permissions = $this->request->getPost('permissions') ?? [];
         
-        // Debug: Log permissions data
-        log_message('debug', 'Permissions data received: ' . json_encode($permissions));
+        // Received permissions data
         
         // Special case for admin role - always has all permissions
         if ($user['role_id'] == 1) {
@@ -161,19 +160,18 @@ class PermissionController extends BaseController
                 $result = $this->userPermissionModel->update($userPermission['id'], [
                     'permissions' => $permissionsJson
                 ]);
-                log_message('debug', 'Updated existing permission record. Result: ' . ($result ? 'success' : 'failed'));
+                // Updated existing permission record
             } else {
                 // Create new record
                 $result = $this->userPermissionModel->insert([
                     'user_id' => $userId,
                     'permissions' => $permissionsJson
                 ]);
-                log_message('debug', 'Created new permission record. Result: ' . ($result ? 'success' : 'failed'));
+                // Created new permission record
             }
             
             // If error occurred during save
             if (!$result) {
-                log_message('error', 'Error saving permissions: ' . json_encode($this->userPermissionModel->errors()));
                 return redirect()->back()->with('error', 'Failed to save permissions: ' . implode(', ', $this->userPermissionModel->errors()));
             }
             
@@ -190,7 +188,6 @@ class PermissionController extends BaseController
             
             return redirect()->to('/permissions')->with('success', 'User permissions updated successfully');
         } catch (\Exception $e) {
-            log_message('error', 'Exception saving permissions: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }

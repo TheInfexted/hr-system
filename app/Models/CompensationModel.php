@@ -60,7 +60,8 @@ class CompensationModel extends Model
     
     /**
      * Get compensation with currency information by employee ID
-     * If multiple records exist, returns the most recent one
+     * If multiple records exist, returns the most recent one by effective_date,
+     * and if multiple records share the same effective_date, returns the last added one (highest ID)
      *
      * @param int $employeeId
      * @return array
@@ -71,6 +72,7 @@ class CompensationModel extends Model
                     ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
                     ->where('compensation.employee_id', $employeeId)
                     ->orderBy('compensation.effective_date', 'DESC')
+                    ->orderBy('compensation.id', 'DESC')
                     ->first();
     }
     
@@ -86,6 +88,7 @@ class CompensationModel extends Model
                     ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
                     ->where('compensation.employee_id', $employeeId)
                     ->orderBy('compensation.effective_date', 'DESC')
+                    ->orderBy('compensation.id', 'DESC')
                     ->findAll();
     }
     
@@ -103,6 +106,7 @@ class CompensationModel extends Model
                     ->join('companies', 'companies.id = employees.company_id')
                     ->join('currencies', 'currencies.id = compensation.currency_id', 'left')
                     ->orderBy('compensation.effective_date', 'DESC')
+                    ->orderBy('compensation.id', 'DESC')
                     ->findAll();
     }
     

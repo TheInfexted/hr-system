@@ -80,8 +80,6 @@ class EmployeeController extends BaseController
             ]);
         }
         
-        // Log the request
-        log_message('debug', 'getEmployees method called');
         
         try {
             $db = db_connect();
@@ -210,8 +208,6 @@ class EmployeeController extends BaseController
             return $this->response->setJSON($response);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error in getEmployees: ' . $e->getMessage());
-            
             return $this->response->setJSON([
                 'draw' => intval($this->request->getGet('draw') ?? 1),
                 'recordsTotal' => 0,
@@ -842,11 +838,8 @@ class EmployeeController extends BaseController
                 $message .= ". Note: {$paidPayslips} paid payslip(s) were also deleted.";
             }
 
-            log_message('info', "Employee {$employee['first_name']} {$employee['last_name']} (ID: {$id}) deleted by user " . session()->get('username') . " along with {$payslipCount} payslips, {$compensationCount} compensation records, {$attendanceCount} attendance records.");
-
             return redirect()->to('/employees')->with('success', $message);
         } catch (\Exception $e) {
-            log_message('error', 'Error deleting employee: ' . $e->getMessage());
             return redirect()->to('/employees')->with('error', 'Failed to delete employee: ' . $e->getMessage());
         }
     }

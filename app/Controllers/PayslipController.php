@@ -321,7 +321,6 @@ class PayslipController extends BaseController
             $this->payslipModel->delete($payslipId);
             return redirect()->to('/payslips/admin')->with('success', 'Payslip deleted successfully.');
         } catch (\Exception $e) {
-            log_message('error', 'Error deleting payslip: ' . $e->getMessage());
             return redirect()->to('/payslips/admin')->with('error', 'An error occurred while deleting the payslip: ' . $e->getMessage());
         }
     }

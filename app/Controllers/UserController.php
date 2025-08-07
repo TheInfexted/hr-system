@@ -150,8 +150,6 @@ class UserController extends BaseController
             return $this->response->setJSON($response);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error in UserController::getUsers: ' . $e->getMessage());
-            
             // Return a valid JSON response even on error
             return $this->response->setJSON([
                 'draw' => 1,
@@ -492,16 +490,14 @@ class UserController extends BaseController
         $userPermissionModel = new UserPermissionModel();
         $permissionCount = $userPermissionModel->where('user_id', $id)->countAllResults();
         if ($permissionCount > 0) {
-            // We can delete these, so just log it
-            log_message('info', 'User ' . $id . ' has permission records that will be deleted');
+            // Permission records will be deleted
         }
         
         // Check for company acknowledgments
         $companyAcknowledgmentModel = new CompanyAcknowledgmentModel();
         $ackCount = $companyAcknowledgmentModel->where('user_id', $id)->countAllResults();
         if ($ackCount > 0) {
-            // We can delete these, so just log it
-            log_message('info', 'User ' . $id . ' has company acknowledgment records that will be deleted');
+            // Company acknowledgment records will be deleted
         }
         
         return $result;

@@ -26,9 +26,7 @@ class EventController extends BaseController
         
         // Update event statuses before displaying
         $updatedCount = $this->eventModel->updateEventStatuses();
-        if ($updatedCount > 0) {
-            log_message('info', 'Auto-updated status for ' . $updatedCount . ' events');
-        }
+        // Status updates completed
         
         $data = [
             'title' => 'Events'
@@ -200,8 +198,6 @@ class EventController extends BaseController
             return $this->response->setJSON($response);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error in getEvents: ' . $e->getMessage());
-            
             return $this->response->setJSON([
                 'draw' => 1,
                 'recordsTotal' => 0,
