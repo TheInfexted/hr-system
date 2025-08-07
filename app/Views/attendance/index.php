@@ -97,13 +97,13 @@ $(document).ready(function() {
             { 
                 data: 'time_in',
                 render: function(data) {
-                    return data ? new Date(data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
+                    return data ? new Date(data).toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'}) : '-';
                 }
             },
             { 
                 data: 'time_out',
                 render: function(data) {
-                    return data ? new Date(data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
+                    return data ? new Date(data).toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'}) : '-';
                 }
             },
             { 
@@ -152,6 +152,53 @@ $(document).ready(function() {
         e.preventDefault();
         window.location.href = '<?= base_url('attendance') ?>?' + $(this).serialize();
     });
+    
+    // Manually initialize date pickers if common.js hasn't done it yet
+    setTimeout(function() {
+        const dateInputs = document.querySelectorAll('input[type="date"]:not([data-air-datepicker])');
+        dateInputs.forEach(input => {
+            // Get current value to preserve it
+            const currentValue = input.value;
+            
+            // Change input type from 'date' to 'text' for AirDatepicker
+            input.type = 'text';
+            input.classList.add('date-picker');
+            
+            // Initialize AirDatepicker
+            if (typeof AirDatepicker !== 'undefined') {
+                const datepickerOptions = {
+                    dateFormat: 'yyyy-MM-dd',
+                    autoClose: true,
+                    position: 'bottom left',
+                    selectedDates: currentValue ? [new Date(currentValue)] : []
+                };
+                
+                // Add locale if available
+                if (typeof AirDatepicker.locales !== 'undefined' && AirDatepicker.locales.en) {
+                    datepickerOptions.locale = AirDatepicker.locales.en;
+                } else {
+                    // Fallback to default English settings
+                    datepickerOptions.locale = {
+                        days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                        daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                        daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                        monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        today: 'Today',
+                        clear: 'Clear',
+                        dateFormat: 'yyyy-MM-dd',
+                        timeFormat: 'HH:mm',
+                        firstDay: 0
+                    };
+                }
+                
+                new AirDatepicker(input, datepickerOptions);
+                
+                // Mark as initialized
+                input.setAttribute('data-air-datepicker', 'true');
+            }
+        });
+    }, 500); // Wait 500ms to ensure all libraries are loaded
 });
 </script>
 <?= $this->endSection() ?>

@@ -132,10 +132,21 @@ class EmployeeController extends BaseController
             $columnName = $request->getGet('columns')[$columnIndex]['data'] ?? 'id';
             $columnSortOrder = $request->getGet('order')[0]['dir'] ?? 'asc';
             
+            // Map frontend column names to actual database columns
+            $columnMappings = [
+                'emp_id' => 'employees.id',
+                'name' => 'employees.first_name',
+                'email' => 'employees.email',
+                'phone' => 'employees.phone',
+                'company' => 'companies.name',
+                'status' => 'employees.status'
+            ];
+            
             if ($columnName != 'action' && $columnName != 'no') {
-                $builder->orderBy($columnName, $columnSortOrder);
+                $dbColumnName = $columnMappings[$columnName] ?? $columnName;
+                $builder->orderBy($dbColumnName, $columnSortOrder);
             } else {
-                $builder->orderBy('employees.id', 'DESC');
+                $builder->orderBy('employees.id', 'ASC');
             }
             
             // Apply pagination

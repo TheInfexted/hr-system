@@ -133,13 +133,7 @@
 
 <?= $this->section('scripts') ?>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize date picker
-    if (typeof AirDatepicker === 'function') {
-        new AirDatepicker('#pay_date', {
-            dateFormat: 'yyyy-MM-dd'
-        });
-    }
-});
+// Date picker is now automatically initialized by common.js
+// No additional script needed for date picker functionality
 </script>
 <?= $this->endSection() ?>

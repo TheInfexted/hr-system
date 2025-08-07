@@ -49,8 +49,7 @@
             <table id="employees-table" class="table table-hover align-middle" width="100%">
                 <thead class="table-light">
                     <tr>
-                        <th width="5%">#</th>
-                        <th width="5%">Employee ID</th>
+                        <th width="10%">Employee ID</th>
                         <th width="20%">Name</th>
                         <th width="20%">Email</th>
                         <th width="15%">Phone</th>
@@ -80,10 +79,6 @@ $(document).ready(function() {
             type: 'GET'
         },
         columns: [
-            { 
-                data: 'no',
-                className: 'text-center' 
-            },
             { 
                 data: 'emp_id',
                 className: 'text-center'

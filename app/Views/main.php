@@ -24,6 +24,8 @@ helper('permission');
     <link href="<?= base_url('assets/datatables/datatables.min.css') ?>" rel="stylesheet">
     <!-- Air Datepicker CSS -->
     <link href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.min.css" rel="stylesheet">
+    <!-- Custom Datepicker CSS -->
+    <link href="<?= base_url('assets/css/datepicker-custom.css') ?>" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
