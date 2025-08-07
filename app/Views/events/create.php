@@ -28,7 +28,7 @@
             </div>
         <?php endif; ?>
         
-        <form action="<?= base_url('events/store') ?>" method="post" id="createEventForm">
+        <form action="<?= base_url('events/create') ?>" method="post" id="createEventForm">
             <?= csrf_field() ?>
             
             <div class="row mb-3">

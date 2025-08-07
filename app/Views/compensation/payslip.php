@@ -50,7 +50,7 @@
                         </tr>
                         <tr>
                             <td style="white-space: nowrap;">Email</td>
-                            <td style="white-space: nowrap;">: <?= $employee['email'] ?? 'N/A' ?></td>
+                            <td style="max-width: 200px;"><span style="white-space: nowrap;">: </span><span style="word-break: break-word; overflow-wrap: break-word; hyphens: auto;"><?= $employee['email'] ?? 'N/A' ?></span></td>
                         </tr>
                     </table>
                 </div>

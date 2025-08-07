@@ -16,6 +16,13 @@
             </div>
         <?php endif; ?>
         
+        <?php if(session()->getFlashdata('comp_success')): ?>
+            <div class="alert alert-success alert-dismissible fade show rounded-3">
+                <i class="bi bi-check-circle-fill me-2"></i> <?= session()->getFlashdata('comp_success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
         <form action="<?= base_url('employees/update/' . $employee['id']) ?>" method="post" enctype="multipart/form-data">
             <!-- Add CSRF token field -->
             <?= csrf_field() ?>
@@ -105,12 +112,23 @@
                 </div>
                 
                 <div class="col-md-12">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="update_compensation" name="update_compensation" value="1">
-                        <label class="form-check-label" for="update_compensation">Create new compensation record with these values</label>
-                        <div class="form-text">Check this to create a new compensation record with the above values. Leave unchecked to keep current compensation.</div>
+                    <div class="card border-info bg-info bg-opacity-10">
+                        <div class="card-body py-3">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-info-circle-fill text-info me-3 mt-1 fs-5"></i>
+                                <div>
+                                    <h6 class="text-info mb-1">Compensation Changes</h6>
+                                    <p class="mb-0 text-dark">Any changes to salary values will automatically create a new compensation record with today's date as the effective date.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Hidden fields to track original values for change detection -->
+                <input type="hidden" id="original_monthly_salary" value="<?= $compensation['monthly_salary'] ?? '' ?>">
+                <input type="hidden" id="original_hourly_rate" value="<?= $compensation['hourly_rate'] ?? '' ?>">
+                <input type="hidden" id="original_currency_id" value="<?= $compensation['currency_id'] ?? 1 ?>">
             </div>
             
             <!-- 3. PERSONAL INFORMATION -->

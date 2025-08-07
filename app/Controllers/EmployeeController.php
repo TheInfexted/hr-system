@@ -689,22 +689,39 @@ class EmployeeController extends BaseController
            ->where('id', $id)
            ->update($data);
         
-        // Check if compensation should be updated
-        $hourlyRate = $this->request->getPost('hourly_rate');
-        $monthlySalary = $this->request->getPost('monthly_salary');
-        $updateCompensation = $this->request->getPost('update_compensation');
+        // Check if compensation values have changed - auto-detect changes
+        $newHourlyRate = $this->request->getPost('hourly_rate') ?: null;
+        $newMonthlySalary = $this->request->getPost('monthly_salary') ?: null;
+        $newCurrencyId = $this->request->getPost('currency_id');
         
-        if ($updateCompensation && (!empty($hourlyRate) || !empty($monthlySalary))) {
+        // Get current compensation values for comparison
+        $currentCompensation = $this->compensationModel->getWithCurrencyByEmployee($id);
+        $currentHourlyRate = $currentCompensation['hourly_rate'] ?? null;
+        $currentMonthlySalary = $currentCompensation['monthly_salary'] ?? null;
+        $currentCurrencyId = $currentCompensation['currency_id'] ?? null;
+        
+        // Check if any compensation values have changed
+        $compensationChanged = (
+            $newHourlyRate != $currentHourlyRate ||
+            $newMonthlySalary != $currentMonthlySalary ||
+            $newCurrencyId != $currentCurrencyId
+        );
+        
+        // Only create new compensation record if values actually changed
+        if ($compensationChanged && ($newHourlyRate || $newMonthlySalary)) {
             $compData = [
                 'employee_id' => $id,
-                'hourly_rate' => $hourlyRate,
-                'monthly_salary' => $monthlySalary,
+                'hourly_rate' => $newHourlyRate,
+                'monthly_salary' => $newMonthlySalary,
                 'effective_date' => date('Y-m-d'),
                 'created_by' => session()->get('user_id'),
-                'currency_id' => $this->request->getVar('currency_id')
+                'currency_id' => $newCurrencyId
             ];
             
             $this->compensationModel->save($compData);
+            
+            // Add success message for compensation update
+            session()->setFlashdata('comp_success', 'New compensation record created with updated salary information.');
         }
         
         return redirect()->to('/employees')->with('success', 'Employee updated successfully');
