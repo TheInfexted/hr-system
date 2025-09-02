@@ -126,3 +126,4 @@ nb-configuration.xml
 /phpunit*.xml
 hr_system.sql
 /public/uploads
+app/Config/Database.php
