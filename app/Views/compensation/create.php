@@ -73,6 +73,16 @@
                     </div>
                 </div>
                 <div class="col-md-6">
+                    <label for="parking_allowance" class="form-label">Parking Allowance</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="parking_allowance" name="parking_allowance" value="<?= old('parking_allowance', 0) ?>">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
                     <label for="overtime" class="form-label">Overtime</label>
                     <div class="input-group">
                         <span class="input-group-text currency-symbol">$</span>

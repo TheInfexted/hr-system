@@ -183,6 +183,7 @@ class CompensationController extends BaseController
             'hourly_rate' => $this->request->getVar('hourly_rate'),
             'monthly_salary' => $this->request->getVar('monthly_salary'),
             'allowance' => $this->request->getVar('allowance'),
+            'parking_allowance' => $this->request->getVar('parking_allowance'),
             'overtime' => $this->request->getVar('overtime'),
             'epf_employee' => $this->request->getVar('epf_employee'),
             'socso_employee' => $this->request->getVar('socso_employee'),
@@ -318,6 +319,7 @@ class CompensationController extends BaseController
             'hourly_rate' => $this->request->getVar('hourly_rate'),
             'monthly_salary' => $this->request->getVar('monthly_salary'),
             'allowance' => $this->request->getVar('allowance'),
+            'parking_allowance' => $this->request->getVar('parking_allowance'),
             'overtime' => $this->request->getVar('overtime'),
             'epf_employee' => $this->request->getVar('epf_employee'),
             'socso_employee' => $this->request->getVar('socso_employee'),
@@ -450,6 +452,7 @@ class CompensationController extends BaseController
         // Calculate total earnings and deductions
         $basicPay = $compensation['monthly_salary'] ?? 0;
         $allowance = $compensation['allowance'] ?? 0;
+        $parkingAllowance = $compensation['parking_allowance'] ?? 0;
         $overtime = $compensation['overtime'] ?? 0;
         
         $epfEmployee = $compensation['epf_employee'] ?? 0;
@@ -457,7 +460,7 @@ class CompensationController extends BaseController
         $eisEmployee = $compensation['eis_employee'] ?? 0;
         $pcb = $compensation['pcb'] ?? 0;
         
-        $totalEarnings = $basicPay + $allowance + $overtime;
+        $totalEarnings = $basicPay + $allowance + $parkingAllowance + $overtime;
         $totalDeductions = $epfEmployee + $socsoEmployee + $eisEmployee + $pcb;
         $netPay = $totalEarnings - $totalDeductions;
         
@@ -479,6 +482,7 @@ class CompensationController extends BaseController
             'year' => $year,
             'basic_pay' => $basicPay,
             'allowance' => $allowance,
+            'parking_allowance' => $parkingAllowance,
             'overtime' => $overtime,
             'epf_employee' => $epfEmployee,
             'socso_employee' => $socsoEmployee,

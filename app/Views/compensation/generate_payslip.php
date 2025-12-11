@@ -85,6 +85,11 @@
                                     $compensation['currency_symbol'] . number_format($compensation['allowance'], 2) : 
                                     $compensation['currency_symbol'] . '0.00' ?>
                             </p>
+                            <p><strong>Parking Allowance:</strong> 
+                                <?= isset($compensation['parking_allowance']) ? 
+                                    $compensation['currency_symbol'] . number_format($compensation['parking_allowance'], 2) : 
+                                    $compensation['currency_symbol'] . '0.00' ?>
+                            </p>
                             <p><strong>Overtime:</strong> 
                                 <?= isset($compensation['overtime']) ? 
                                     $compensation['currency_symbol'] . number_format($compensation['overtime'], 2) : 

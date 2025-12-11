@@ -13,7 +13,7 @@ class PayslipModel extends Model
     protected $useSoftDeletes = false;
     
     protected $allowedFields = [
-        'employee_id', 'month', 'year', 'basic_pay', 'allowance', 
+        'employee_id', 'month', 'year', 'basic_pay', 'allowance', 'parking_allowance',
         'overtime', 'epf_employee', 'socso_employee', 'eis_employee', 
         'pcb', 'total_earnings', 'total_deductions', 'net_pay', 
         'pay_date', 'working_days', 'generated_by', 'status', 'remarks',
@@ -100,6 +100,7 @@ class PayslipModel extends Model
             'year'             => $data['year'],
             'basic_pay'        => $data['basic_pay'] ?? 0,
             'allowance'        => $data['allowance'] ?? 0,
+            'parking_allowance' => $data['parking_allowance'] ?? 0,
             'overtime'         => $data['overtime'] ?? 0,
             'epf_employee'     => $data['epf_employee'] ?? 0,
             'socso_employee'   => $data['socso_employee'] ?? 0,

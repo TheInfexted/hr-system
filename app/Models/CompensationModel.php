@@ -14,7 +14,7 @@ class CompensationModel extends Model
     
     protected $allowedFields = [
         'employee_id', 'hourly_rate', 'monthly_salary', 'effective_date', 'created_by',
-        'allowance', 'overtime', 'epf_employee', 'socso_employee', 'eis_employee', 'pcb',
+        'allowance', 'parking_allowance', 'overtime', 'epf_employee', 'socso_employee', 'eis_employee', 'pcb',
         'currency_id' // Added currency_id field
     ];
     
@@ -120,6 +120,7 @@ class CompensationModel extends Model
     {
         $totalEarnings = ($compensation['monthly_salary'] ?? 0) + 
                          ($compensation['allowance'] ?? 0) + 
+                         ($compensation['parking_allowance'] ?? 0) +
                          ($compensation['overtime'] ?? 0);
                 
         $totalDeductions = ($compensation['epf_employee'] ?? 0) + 

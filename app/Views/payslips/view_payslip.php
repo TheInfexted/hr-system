@@ -85,14 +85,14 @@
                     <td class="text-end"><?= number_format($payslip['socso_employee'], 2) ?></td>
                 </tr>
                 <tr>
-                    <td>Overtime</td>
-                    <td class="text-end"><?= number_format($payslip['overtime'], 2) ?></td>
+                    <td>Parking Allowance</td>
+                    <td class="text-end"><?= number_format($payslip['parking_allowance'] ?? 0, 2) ?></td>
                     <td>EIS Employee</td>
                     <td class="text-end"><?= number_format($payslip['eis_employee'], 2) ?></td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td></td>
+                    <td>Overtime</td>
+                    <td class="text-end"><?= number_format($payslip['overtime'], 2) ?></td>
                     <td>PCB</td>
                     <td class="text-end"><?= number_format($payslip['pcb'], 2) ?></td>
                 </tr>

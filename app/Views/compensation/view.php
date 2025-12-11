@@ -85,6 +85,12 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th>Parking Allowance</th>
+                                <td class="fw-medium text-success">
+                                    <?= !empty($compensation['parking_allowance']) ? $compensation['currency_symbol'] . number_format($compensation['parking_allowance'], 2) : $compensation['currency_symbol'] . '0.00' ?>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th>Overtime</th>
                                 <td class="fw-medium text-success">
                                     <?= !empty($compensation['overtime']) ? $compensation['currency_symbol'] . number_format($compensation['overtime'], 2) : $compensation['currency_symbol'] . '0.00' ?>
@@ -137,6 +143,7 @@
                 // Calculate total earnings and deductions
                 $totalEarnings = ($compensation['monthly_salary'] ?? 0) + 
                                 ($compensation['allowance'] ?? 0) + 
+                                ($compensation['parking_allowance'] ?? 0) +
                                 ($compensation['overtime'] ?? 0);
                 
                 $totalDeductions = ($compensation['epf_employee'] ?? 0) + 
