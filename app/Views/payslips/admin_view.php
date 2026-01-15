@@ -134,30 +134,6 @@
                 </tr>
             </table>
             
-            <!-- Additional Details -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <h5>Payslip Details</h5>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <p><strong>Created Date:</strong> <?= date('d M Y H:i', strtotime($payslip['created_at'])) ?></p>
-                                </div>
-                                <div class="col-md-4">
-                                    <p><strong>Status:</strong> <span class="badge bg-<?= $payslip['status'] == 'paid' ? 'success' : ($payslip['status'] == 'cancelled' ? 'danger' : 'info') ?>"><?= ucfirst($payslip['status']) ?></span></p>
-                                </div>
-                                <div class="col-md-4">
-                                    <?php if(!empty($payslip['remarks'])): ?>
-                                    <p><strong>Remarks:</strong> <?= $payslip['remarks'] ?></p>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Signature Section -->
             <div class="row mt-5 pt-5">
                 <div class="col-6 text-center">
