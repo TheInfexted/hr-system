@@ -81,6 +81,12 @@
                                         <i class="bi bi-x-circle"></i>
                                     </a>
                                     <?php endif; ?>
+                                    <?php if(has_permission('delete_payslips') && in_array($payslip['status'], ['generated', 'cancelled'])): ?>
+                                    <a href="<?= base_url('payslips/admin/delete/' . $payslip['id']) ?>" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Are you sure you want to delete this payslip? This action cannot be undone.')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

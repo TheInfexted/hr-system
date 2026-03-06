@@ -17,7 +17,7 @@ class EmployeeModel extends Model
         'address', 'emergency_contact', 'date_of_birth', 'hire_date', 'status',
         'department', 'position', 'id_type', 'id_number', 
         'passport_file', 'nric_front', 'nric_back', 'offer_letter',
-        'bank_name', 'bank_account'  
+        'bank_name', 'bank_account', 'epf_id'
     ];
     
     protected $useTimestamps = true;
@@ -32,7 +32,8 @@ class EmployeeModel extends Model
         'hire_date'     => 'required|valid_date',
         'company_id'    => 'required|numeric',
         'bank_name'     => 'permit_empty|max_length[100]',
-        'bank_account'  => 'permit_empty|max_length[50]'
+        'bank_account'  => 'permit_empty|max_length[50]',
+        'epf_id'        => 'permit_empty|max_length[50]'
     ];
     
     protected $validationMessages = [

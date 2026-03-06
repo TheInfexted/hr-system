@@ -98,6 +98,22 @@
                                value="<?= old('monthly_salary', $compensation['monthly_salary'] ?? '') ?>">
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <label for="allowance" class="form-label">Allowance</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="allowance" name="allowance" 
+                               value="<?= old('allowance', $compensation['allowance'] ?? 0) ?>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="parking_allowance" class="form-label">Parking Allowance</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="parking_allowance" name="parking_allowance" 
+                               value="<?= old('parking_allowance', $compensation['parking_allowance'] ?? 0) ?>">
+                    </div>
+                </div>
                 
                 <!-- Add bank information fields -->
                 <div class="col-md-6">
@@ -109,6 +125,12 @@
                     <label for="bank_account" class="form-label">Bank Account Number</label>
                     <input type="text" class="form-control" id="bank_account" name="bank_account" 
                            value="<?= old('bank_account', $employee['bank_account'] ?? '') ?>">
+                </div>
+                <div class="col-md-6">
+                    <label for="epf_id" class="form-label">EPF ID</label>
+                    <input type="text" class="form-control" id="epf_id" name="epf_id" 
+                           value="<?= old('epf_id', $employee['epf_id'] ?? '') ?>" placeholder="e.g. 12345678-90-1234">
+                    <small class="text-muted">Employee's EPF membership / account number</small>
                 </div>
                 
                 <div class="col-md-12">
@@ -129,6 +151,8 @@
                 <input type="hidden" id="original_monthly_salary" value="<?= $compensation['monthly_salary'] ?? '' ?>">
                 <input type="hidden" id="original_hourly_rate" value="<?= $compensation['hourly_rate'] ?? '' ?>">
                 <input type="hidden" id="original_currency_id" value="<?= $compensation['currency_id'] ?? 1 ?>">
+                <input type="hidden" id="original_allowance" value="<?= $compensation['allowance'] ?? 0 ?>">
+                <input type="hidden" id="original_parking_allowance" value="<?= $compensation['parking_allowance'] ?? 0 ?>">
             </div>
             
             <!-- 3. PERSONAL INFORMATION -->

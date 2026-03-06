@@ -464,11 +464,12 @@ class CompensationController extends BaseController
         $totalDeductions = $epfEmployee + $socsoEmployee + $eisEmployee + $pcb;
         $netPay = $totalEarnings - $totalDeductions;
         
-        // Check if a payslip already exists for this employee and month/year
+        // Check if a non-cancelled payslip already exists for this employee and month/year
         $payslipModel = new \App\Models\PayslipModel();
         $existingPayslip = $payslipModel->where('employee_id', $employeeId)
                                         ->where('month', $month)
                                         ->where('year', $year)
+                                        ->where('status !=', 'cancelled')
                                         ->first();
         
         if ($existingPayslip) {

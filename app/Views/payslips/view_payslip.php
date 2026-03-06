@@ -40,6 +40,10 @@
                             <td>Bank Account</td>
                             <td>: <?= $employee['bank_account'] ?? 'N/A' ?></td>
                         </tr>
+                        <tr>
+                            <td>EPF ID</td>
+                            <td>: <?= $employee['epf_id'] ?? 'N/A' ?></td>
+                        </tr>
                     </table>
                 </div>
                 <div class="col-6">
@@ -68,9 +72,9 @@
             <table class="table table-bordered">
                 <tr style="background-color: #f0f0f0;">
                     <th width="25%">Earnings</th>
-                    <th width="25%" class="text-end">Amount (<?= $payslip['currency_symbol'] ?>)</th>
+                    <th width="25%" class="text-end">Amount (<?= $payslip['currency_symbol'] ?? $payslip['currency_code'] ?? 'RM' ?>)</th>
                     <th width="25%">Deductions</th>
-                    <th width="25%" class="text-end">Amount (<?= $payslip['currency_symbol'] ?>)</th>
+                    <th width="25%" class="text-end">Amount (<?= $payslip['currency_symbol'] ?? $payslip['currency_code'] ?? 'RM' ?>)</th>
                 </tr>
                 <tr>
                     <td>Basic Pay</td>

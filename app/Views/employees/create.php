@@ -85,12 +85,31 @@
                     <small class="text-muted">Leave blank if not applicable</small>
                 </div>
                 <div class="col-md-6">
+                    <label for="allowance" class="form-label">Allowance</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="allowance" name="allowance" value="<?= old('allowance', 0) ?>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="parking_allowance" class="form-label">Parking Allowance</label>
+                    <div class="input-group">
+                        <span class="input-group-text currency-symbol">$</span>
+                        <input type="number" step="0.01" class="form-control" id="parking_allowance" name="parking_allowance" value="<?= old('parking_allowance', 0) ?>">
+                    </div>
+                </div>
+                <div class="col-md-6">
                     <label for="bank_name" class="form-label">Name of Bank</label>
                     <input type="text" class="form-control" id="bank_name" name="bank_name" value="<?= old('bank_name') ?>">
                 </div>
                 <div class="col-md-6">
                     <label for="bank_account" class="form-label">Bank Account Number</label>
                     <input type="text" class="form-control" id="bank_account" name="bank_account" value="<?= old('bank_account') ?>">
+                </div>
+                <div class="col-md-6">
+                    <label for="epf_id" class="form-label">EPF ID</label>
+                    <input type="text" class="form-control" id="epf_id" name="epf_id" value="<?= old('epf_id') ?>" placeholder="e.g. 12345678-90-1234">
+                    <small class="text-muted">Employee's EPF membership / account number</small>
                 </div>
             </div>
             

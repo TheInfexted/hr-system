@@ -63,6 +63,7 @@ class PayslipController extends BaseController
         
         // Get the payslip
         $payslip = $this->payslipModel->find($payslipId);
+        $payslip = $this->payslipModel->getWithCurrency($payslipId);
         
         if (empty($payslip)) {
             return redirect()->to('/payslips')->with('error', 'Payslip not found.');
@@ -80,7 +81,7 @@ class PayslipController extends BaseController
             'title' => 'View Payslip',
             'employee' => $employee,
             'payslip' => $payslip,
-            'company' => $company
+            'company' => $company,
         ];
         
         return view('payslips/view_payslip', $data);
@@ -151,6 +152,7 @@ class PayslipController extends BaseController
         
         // Get the payslip
         $payslip = $this->payslipModel->find($payslipId);
+        $payslip = $this->payslipModel->getWithCurrency($payslipId);
         
         if (empty($payslip)) {
             return redirect()->to('/payslips/admin')->with('error', 'Payslip not found.');
@@ -181,7 +183,7 @@ class PayslipController extends BaseController
             'title' => 'View Payslip',
             'employee' => $employee,
             'payslip' => $payslip,
-            'company' => $company
+            'company' => $company,
         ];
         
         return view('payslips/admin_view', $data);
@@ -310,16 +312,20 @@ class PayslipController extends BaseController
             }
         }
         
-        // Only allow deleting of payslips with 'generated' status
-        if ($payslip['status'] !== 'generated') {
+        // Only 'generated' and 'cancelled' payslips can be deleted
+        // 'paid' payslips cannot be deleted for audit trail purposes
+        $deletableStatuses = ['generated', 'cancelled'];
+        if (!in_array($payslip['status'], $deletableStatuses)) {
             return redirect()->to('/payslips/admin/view/' . $payslipId)->with('error', 
-                'Only payslips with "Generated" status can be deleted. Please cancel the payslip instead.');
+                'Only generated or cancelled payslips can be deleted. Paid payslips are retained for audit purposes.');
         }
         
         try {
             // Delete the payslip
             $this->payslipModel->delete($payslipId);
-            return redirect()->to('/payslips/admin')->with('success', 'Payslip deleted successfully.');
+            
+            $statusMsg = $payslip['status'] === 'cancelled' ? 'Cancelled payslip' : 'Payslip';
+            return redirect()->to('/payslips/admin')->with('success', $statusMsg . ' deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->to('/payslips/admin')->with('error', 'An error occurred while deleting the payslip: ' . $e->getMessage());
         }

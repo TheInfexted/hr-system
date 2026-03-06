@@ -34,6 +34,7 @@
                             <th>Basic Salary</th>
                             <th>Hourly Rate</th>
                             <th>Allowance</th>
+                            <th>Parking Allowance</th>
                             <th>Overtime</th>
                             <th>EPF</th>
                             <th>SOCSO</th>
@@ -66,6 +67,11 @@
                                 <td>
                                     <?= !empty($record['allowance']) 
                                         ? $record['currency_symbol'] . number_format($record['allowance'], 2) 
+                                        : $record['currency_symbol'] . '0.00' ?>
+                                </td>
+                                <td>
+                                    <?= !empty($record['parking_allowance']) 
+                                        ? $record['currency_symbol'] . number_format($record['parking_allowance'], 2) 
                                         : $record['currency_symbol'] . '0.00' ?>
                                 </td>
                                 <td>

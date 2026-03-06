@@ -395,6 +395,9 @@
                                 <div class="col-md-6">
                                     <p><strong>Bank Account:</strong> <?= $employee['bank_account'] ?? 'Not provided' ?></p>
                                 </div>
+                                <div class="col-md-6">
+                                    <p><strong>EPF ID:</strong> <?= $employee['epf_id'] ?? 'Not provided' ?></p>
+                                </div>
                             </div>
                         </div>
                     </div>

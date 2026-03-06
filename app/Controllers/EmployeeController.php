@@ -388,6 +388,7 @@ class EmployeeController extends BaseController
             'company_id' => $companyId,
             'bank_name' => $this->request->getVar('bank_name'),
             'bank_account' => $this->request->getVar('bank_account'),
+            'epf_id' => $this->request->getVar('epf_id'),
         ];
         
         // Create the directory if it doesn't exist
@@ -458,11 +459,12 @@ class EmployeeController extends BaseController
                 'employee_id' => $employeeId,
                 'hourly_rate' => $hourlyRate,
                 'monthly_salary' => $monthlySalary,
+                'allowance' => (float) ($this->request->getPost('allowance') ?? 0),
+                'parking_allowance' => (float) ($this->request->getPost('parking_allowance') ?? 0),
                 'effective_date' => date('Y-m-d'),
                 'created_by' => session()->get('user_id'),
                 'currency_id' => $this->request->getVar('currency_id')
             ];
-            
             $this->compensationModel->save($compData);
         }
         
@@ -609,6 +611,7 @@ class EmployeeController extends BaseController
             'id_number' => $this->request->getPost('id_number'),
             'bank_name' => $this->request->getVar('bank_name'),
             'bank_account' => $this->request->getVar('bank_account'),
+            'epf_id' => $this->request->getVar('epf_id'),
         ];
         
         // Create the directory if it doesn't exist
@@ -693,35 +696,52 @@ class EmployeeController extends BaseController
         $newHourlyRate = $this->request->getPost('hourly_rate') ?: null;
         $newMonthlySalary = $this->request->getPost('monthly_salary') ?: null;
         $newCurrencyId = $this->request->getPost('currency_id');
+        $newAllowance = (float) ($this->request->getPost('allowance') ?? 0);
+        $newParkingAllowance = (float) ($this->request->getPost('parking_allowance') ?? 0);
         
-        // Get current compensation values for comparison
-        $currentCompensation = $this->compensationModel->getWithCurrencyByEmployee($id);
+        // Get current compensation values for comparison (use array so we never have null)
+        $currentCompensation = $this->compensationModel->getWithCurrencyByEmployee($id) ?: [];
         $currentHourlyRate = $currentCompensation['hourly_rate'] ?? null;
         $currentMonthlySalary = $currentCompensation['monthly_salary'] ?? null;
         $currentCurrencyId = $currentCompensation['currency_id'] ?? null;
+        $currentAllowance = (float) ($currentCompensation['allowance'] ?? 0);
+        $currentParkingAllowance = (float) ($currentCompensation['parking_allowance'] ?? 0);
+        
+        // Normalize empty string from form to null for salary/rate so comparison is correct
+        $newHourlyRate = $newHourlyRate === '' ? null : $newHourlyRate;
+        $newMonthlySalary = $newMonthlySalary === '' ? null : $newMonthlySalary;
         
         // Check if any compensation values have changed
         $compensationChanged = (
             $newHourlyRate != $currentHourlyRate ||
             $newMonthlySalary != $currentMonthlySalary ||
-            $newCurrencyId != $currentCurrencyId
+            (string) $newCurrencyId !== (string) $currentCurrencyId ||
+            $newAllowance != $currentAllowance ||
+            $newParkingAllowance != $currentParkingAllowance
         );
         
-        // Only create new compensation record if values actually changed
-        if ($compensationChanged && ($newHourlyRate || $newMonthlySalary)) {
+        // When any compensation field changes: add a new compensation record (updates history).
+        // Only overwrite fields that are on the employee edit form; preserve deductions and overtime from current record.
+        if ($compensationChanged) {
             $compData = [
                 'employee_id' => $id,
-                'hourly_rate' => $newHourlyRate,
-                'monthly_salary' => $newMonthlySalary,
+                'hourly_rate' => $newHourlyRate ?? $currentHourlyRate,
+                'monthly_salary' => $newMonthlySalary ?? $currentMonthlySalary,
+                'allowance' => $newAllowance,
+                'parking_allowance' => $newParkingAllowance,
                 'effective_date' => date('Y-m-d'),
                 'created_by' => session()->get('user_id'),
-                'currency_id' => $newCurrencyId
+                'currency_id' => $newCurrencyId ?: $currentCurrencyId ?: 1
             ];
-            
+            // Preserve deduction and overtime fields (not on employee edit form) from current compensation
+            $compData['overtime'] = (float) ($currentCompensation['overtime'] ?? 0);
+            $compData['epf_employee'] = (float) ($currentCompensation['epf_employee'] ?? 0);
+            $compData['socso_employee'] = (float) ($currentCompensation['socso_employee'] ?? 0);
+            $compData['eis_employee'] = (float) ($currentCompensation['eis_employee'] ?? 0);
+            $compData['pcb'] = (float) ($currentCompensation['pcb'] ?? 0);
             $this->compensationModel->save($compData);
-            
-            // Add success message for compensation update
-            session()->setFlashdata('comp_success', 'New compensation record created with updated salary information.');
+            return redirect()->to(base_url('compensation/history/' . $id))
+                ->with('success', 'Employee updated successfully. Compensation history updated with the new record.');
         }
         
         return redirect()->to('/employees')->with('success', 'Employee updated successfully');

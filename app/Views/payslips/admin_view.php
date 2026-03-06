@@ -22,8 +22,8 @@
             </a>
             <?php endif; ?>
             
-            <?php if($payslip['status'] === 'generated' && has_permission('delete_payslips')): ?>
-            <a href="<?= base_url('payslips/admin/delete/' . $payslip['id']) ?>" 
+            <?php if(in_array($payslip['status'], ['generated', 'cancelled']) && has_permission('delete_payslips')): ?>
+            <a href="<?= base_url('payslips/admin/delete/' . $payslip['id']) ?>"
                class="btn btn-danger" 
                onclick="return confirm('Are you sure you want to delete this payslip? This action cannot be undone.')">
                 <i class="bi bi-trash me-1"></i> Delete Payslip
@@ -64,6 +64,10 @@
                         <tr>
                             <td>Bank Account</td>
                             <td>: <?= $employee['bank_account'] ?? 'N/A' ?></td>
+                        </tr>
+                        <tr>
+                            <td>EPF ID</td>
+                            <td>: <?= $employee['epf_id'] ?? 'N/A' ?></td>
                         </tr>
                     </table>
                 </div>
